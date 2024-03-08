@@ -10,12 +10,52 @@ import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:provider/provider.dart';
 import 'package:desktopapp/components/provider/user_provider.dart';
 import 'package:windows_notification/notification_message.dart';
 import 'package:windows_notification/windows_notification.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:pdf/pdf.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:open_file/open_file.dart';
+
+class Vehiculo {
+  int id;
+  String nombre_modelo;
+  String placa;
+  int administrador_id;
+  bool seleccinado;
+  Vehiculo(
+      {required this.id,
+      required this.nombre_modelo,
+      required this.placa,
+      required this.administrador_id,
+      required this.seleccinado});
+}
+
+class Empleadopedido {
+  int? idruta;
+  final int npedido;
+  final String estado;
+  final String tipo;
+  final String fecha;
+  double? total;
+  final String nombres;
+  final String vehiculo;
+
+  Empleadopedido(
+      {this.idruta,
+      required this.npedido,
+      required this.estado,
+      required this.tipo,
+      required this.fecha,
+      required this.total,
+      required this.nombres,
+      required this.vehiculo});
+}
 
 // AGENDADOS
 class Pedido {
@@ -150,6 +190,8 @@ class _Armado2State extends State<Armado2> {
   String apiRutaCrear = '/api/ruta';
   String apiLastRuta = '/api/rutalast';
   String apiUpdateRuta = '/api/pedidoruta';
+  String apiEmpleadoPedidos = '/api/empleadopedido/';
+  String apiVehiculos = '/api/vehiculo/';
   late int rutaIdLast;
   late io.Socket socket;
   late DateTime fechaparseadas;
@@ -175,6 +217,10 @@ class _Armado2State extends State<Armado2> {
   List<LatLng> puntosnormal = [];
   List<LatLng> puntosexpress = [];
 
+  // EMPLEADOPEDIDOLIST
+  List<Empleadopedido> empleadopedido = [];
+  List<Vehiculo>vehiculos = [];
+
   // MARCADORES
   List<Marker> marcadores = [];
   List<Marker> expressmarker = [];
@@ -186,13 +232,65 @@ class _Armado2State extends State<Armado2> {
         r"{D65231B0-B2F1-4857-A4CE-A8E7C6EA7D27}\WindowsPowerShell\v1.0\powershell.exe",
   );
   Map<LatLng, Color> coloreSeleccionados = {};
+  int informe = 0;
+  String nombre = '';
+  String apellidos = '';
+  int id = 0;
 
   void initState() {
     super.initState();
     connectToServer();
     getPedidos();
     getConductores();
+    getVehiculos();
     // marcadoresPut();
+  }
+
+  Future<dynamic> getVehiculos() async {
+    SharedPreferences empleadoShare = await SharedPreferences.getInstance();
+    var res = await http.get(
+        Uri.parse(
+            api + apiVehiculos + empleadoShare.getInt('empleadoID').toString()),
+        headers: {"Content-type": "application/json"});
+    var data = json.decode(res.body);
+    List<Vehiculo> tempVehiculo = data.map<Vehiculo>((item) {
+      return Vehiculo(
+          id: item['id'],
+          nombre_modelo: item['nombre_modelo'],
+          placa: item['placa'],
+          administrador_id: item['administrador_id'],
+          seleccinado: item['seleccinado']);
+    }).toList();
+    setState(() {
+        vehiculos = tempVehiculo;
+    });
+  }
+
+  Future<dynamic> getEmpleadoPedido(int empleadoid) async {
+    print("${api}+$apiEmpleadoPedidos+${empleadoid.toString()}");
+    var res = await http.get(
+        Uri.parse(api + apiEmpleadoPedidos + empleadoid.toString()),
+        headers: {"Content-type": "application/json"});
+    try {
+      var data = json.decode(res.body);
+      List<Empleadopedido> tempEmpleadopedido =
+          data.map<Empleadopedido>((data) {
+        return Empleadopedido(
+            npedido: data['npedido'],
+            estado: data['estado'],
+            tipo: data['tipo'],
+            fecha: data['fecha'],
+            total: data['total']?.toDouble() ?? 0.0,
+            nombres: data['nombres'],
+            vehiculo: data['vehiculo']);
+      }).toList();
+      setState(() {
+        empleadopedido = tempEmpleadopedido;
+        print("$tempEmpleadopedido");
+      });
+    } catch (e) {
+      throw Exception('$e');
+    }
   }
 
   Future<String> getImageBytes(String assetPath) async {
@@ -351,8 +449,10 @@ class _Armado2State extends State<Armado2> {
                           decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(50),
                               color: Colors.white.withOpacity(0.5),
-                              border:
-                                  Border.all(width: 1, color: const Color.fromARGB(255, 12, 112, 16))),
+                              border: Border.all(
+                                  width: 1,
+                                  color:
+                                      const Color.fromARGB(255, 12, 112, 16))),
                           child: Center(
                               child: Text(
                             "${count}",
@@ -371,8 +471,8 @@ class _Armado2State extends State<Armado2> {
                               // color: Colors.black,
                               borderRadius: BorderRadius.circular(20),
                               image: const DecorationImage(
-                                  image:
-                                      AssetImage('lib/imagenes/greenfinal.png'))),
+                                  image: AssetImage(
+                                      'lib/imagenes/greenfinal.png'))),
                         ),
                       ],
                     ) /*Icon(Icons.location_on_outlined,
@@ -463,6 +563,150 @@ class _Armado2State extends State<Armado2> {
     }
   }
 
+  Future<File> saveDocument(
+      {required String name, required pw.Document pdf}) async {
+    final bytes = await pdf.save();
+    final dir = await getTemporaryDirectory();
+    final file = File('${dir.path}/$name');
+
+    await file.writeAsBytes(bytes);
+    return file;
+  }
+
+  Future<void> openDocument(File file) async {
+    await OpenFile.open(file.path);
+  }
+
+  Future<File> createPdf() async {
+    // NÚMERO DE INFORME
+    informe++;
+
+    final pdf = pw.Document();
+
+    pdf.addPage(pw.MultiPage(
+      pageFormat: PdfPageFormat.a4,
+      margin:
+          const pw.EdgeInsets.only(top: 20, bottom: 20, left: 20, right: 20),
+      build: (context) => [
+        pw.Column(children: [
+          pw.Center(
+              child: pw.Container(
+                  height: 30,
+                  decoration: pw.BoxDecoration(
+                      borderRadius: pw.BorderRadius.circular(20),
+                      color: PdfColor.fromInt(Colors.amber.value)),
+                  child: pw.Center(
+                      child: pw.Text("Informe N° ${informe}".toUpperCase(),
+                          style: pw.TextStyle(
+                              fontWeight: pw.FontWeight.bold,
+                              fontSize: 15,
+                              color: PdfColor.fromInt(
+                                  const Color.fromARGB(255, 12, 39, 62)
+                                      .value)))))),
+        ]),
+
+        // ESPACIO
+        pw.SizedBox(height: 30),
+
+        pw.Container(
+            width: 200,
+            height: 80,
+            padding: pw.EdgeInsets.all(10),
+            decoration: pw.BoxDecoration(
+                borderRadius: pw.BorderRadius.circular(10),
+                color: PdfColor.fromInt(Colors.blue.value)),
+            child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text("ID: ${id}",
+                      style: pw.TextStyle(
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColor.fromInt(Colors.white.value))),
+                  pw.Text("Nombres: ${nombre}",
+                      style: pw.TextStyle(
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColor.fromInt(Colors.white.value))),
+                  pw.Text("Apellidos: ${apellidos}",
+                      style: pw.TextStyle(
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColor.fromInt(Colors.white.value))),
+                  pw.Text("Fecha: ${now.day}/${now.month}/${now.year}",
+                      style: pw.TextStyle(
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColor.fromInt(Colors.white.value))),
+                ])),
+        //ESPACIO
+        pw.SizedBox(height: 30),
+
+        //TABLA
+        /* pw.Table(border: pw.TableBorder.all(), children: [
+          pw.TableRow(children: [
+            pw.Text("Cantidad de Pedido".toUpperCase()),
+            pw.Text("Monto".toUpperCase()),
+            pw.Text("Unidad Móvil".toUpperCase()),
+          ]),
+          for (var i = 0; i < pedidosget.length; i++)
+            pw.TableRow(children: [
+              pw.Text("Pedido n° ${pedidosget[i].id}".toUpperCase()),
+              pw.Text("Estado: ${pedidosget[i].estado}".toUpperCase()),
+              pw.Text("Unidad Móvil".toUpperCase()),
+            ]),
+          pw.TableRow(children: [
+            pw.Container(
+                height: 20,
+                width: 20,
+                child: pw.ListView.builder(
+                    itemCount: 10,
+                    itemBuilder: (context, index) {
+                      return pw.Column(children: [pw.Text("asd")]);
+                    })),
+          ])
+        ])*/
+        pw.Table(
+          border: pw.TableBorder.all(),
+          children: [
+            pw.TableRow(
+              children: [
+                pw.Text("N° Registro", style: pw.TextStyle(fontSize: 12)),
+                pw.Text("Ruta N°"),
+                pw.Text("Pedido N°"),
+                pw.Text("Fecha"),
+                pw.Text("Tipo de Pedido".toUpperCase()),
+                pw.Text("Estado del Pedido".toUpperCase()),
+                pw.Text("Monto total".toUpperCase()),
+                pw.Text("Conductor".toUpperCase()),
+                pw.Text("Unidad Móvil".toUpperCase())
+              ],
+            ),
+            for (var i = 0; i < empleadopedido.length; i++)
+              pw.TableRow(
+                children: [
+                  pw.Text("${i + 1}"), //n registro
+                  pw.Text("${empleadopedido[i].idruta}"), //id ruta
+                  pw.Text("${empleadopedido[i].npedido}"),
+                  pw.Text("${empleadopedido[i].fecha}"),
+                  pw.Text("${empleadopedido[i].tipo}"), //tipo
+                  pw.Text("${empleadopedido[i].estado}".toUpperCase()), //estado
+                  pw.Text("S/.${empleadopedido[i].total}"), //monto total
+                  pw.Text("${empleadopedido[i].nombres}"),
+                  pw.Text("${empleadopedido[i].vehiculo}")
+                ],
+              ),
+          ],
+        ),
+      ],
+    ));
+
+    final savedFile = await saveDocument(
+        name: 'informe_${now.day}-${now.month}-${now.year}', pdf: pdf);
+    await openDocument(savedFile);
+
+    return savedFile;
+    /*return saveDocument(
+      name:'informe${1}',pdf:pdf
+    );*/
+  }
+
   void connectToServer() {
     print("-----CONEXIÓN------");
 
@@ -485,27 +729,25 @@ class _Armado2State extends State<Armado2> {
     });
 
     socket.on('nuevoPedido', (data) async {
-      if(data['tipo']=='express'){
+      if (data['tipo'] == 'express') {
         String imagePath = await getImageBytes('lib/imagenes/amberfinal.png');
-      NotificationMessage message = NotificationMessage.fromPluginTemplate(
-        "Pedido",
-        " Llegó un pedido !",
-        "${data['tipo']}",
-        largeImage: imagePath,
-      );
-      _winNotifyPlugin.showNotificationPluginTemplate(message);
-      }
-      else{
+        NotificationMessage message = NotificationMessage.fromPluginTemplate(
+          "Pedido",
+          " Llegó un pedido !",
+          "${data['tipo']}",
+          largeImage: imagePath,
+        );
+        _winNotifyPlugin.showNotificationPluginTemplate(message);
+      } else {
         String imagePath = await getImageBytes('lib/imagenes/bluefinal.png');
-      NotificationMessage message = NotificationMessage.fromPluginTemplate(
-        "Pedido",
-        " Llegó un pedido !",
-        "${data['tipo']}",
-        largeImage: imagePath,
-      );
-      _winNotifyPlugin.showNotificationPluginTemplate(message);
+        NotificationMessage message = NotificationMessage.fromPluginTemplate(
+          "Pedido",
+          " Llegó un pedido !",
+          "${data['tipo']}",
+          largeImage: imagePath,
+        );
+        _winNotifyPlugin.showNotificationPluginTemplate(message);
       }
-      
     });
     // CREATE PEDIDO WS://API/PRODUCTS
     /* socket.on('nuevoPedido', (data) {
@@ -653,6 +895,9 @@ class _Armado2State extends State<Armado2> {
   @override
   Widget build(BuildContext context) {
     final userProvider = context.watch<UserProvider>();
+    nombre = userProvider.user!.nombre;
+    apellidos = userProvider.user!.apellidos;
+    id = userProvider.user!.id;
 
     return Scaffold(
       body: SafeArea(
@@ -681,14 +926,74 @@ class _Armado2State extends State<Armado2> {
                 ],
               ),
 
+              // VEHICULOS
+              Positioned(
+                top: MediaQuery.of(context).size.height / 7,
+                left: 10,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    // color: Colors.amber
+                  ),
+                  margin: const EdgeInsets.only(left: 10),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          color: Colors.teal,
+                        ),
+                        child: Text(
+                          "Vehículos: 4",
+                          style: TextStyle(
+                              color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      Container(
+                        height: 200,
+                        width: 249,
+                        child: ListView.builder(
+                          itemCount: vehiculos.length,
+                          itemBuilder: (context, index) {
+                            return Container(
+                                padding: const EdgeInsets.all(8),
+                                margin: const EdgeInsets.only(top: 10),
+                                decoration: BoxDecoration(
+                                    color: Colors.teal,
+                                    borderRadius: BorderRadius.circular(20)),
+                                child: ListTile(
+                                  trailing: Checkbox(
+                                    checkColor: Colors.white,
+                                    value:vehiculos[index].seleccinado, //conductorget[index].seleccionado,
+                                    onChanged: (value) {},
+                                  ),
+                                  title: Container(
+                                    child: Row(
+                                      children: [
+                                        Text("ID: ${vehiculos[index].id}"),
+                                        Text("Nombre: ${vehiculos[index].nombre_modelo}"),
+                                        Text("Placa: ${vehiculos[index].placa}")
+                                      ],
+                                    )
+                                  ),
+                                ));
+                          },
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+
               // AGENDADOS
               Positioned(
-                top: MediaQuery.of(context).size.height / 9,
+                bottom: 30,
                 left: 10,
                 child: Container(
                   padding: const EdgeInsets.all(15),
                   width: 250,
-                  height: MediaQuery.of(context).size.height / 1.2,
+                  height: MediaQuery.of(context).size.height / 2,
                   decoration: BoxDecoration(
                       //  color: Colors.white.withOpacity(0.7),
                       color: Colors.white.withOpacity(0.9),
@@ -709,8 +1014,8 @@ class _Armado2State extends State<Armado2> {
                       ),
                       Container(
                         width: 300,
-                        height: MediaQuery.of(context).size.height / 1.3,
-                        //color: Colors.grey,
+                        height: MediaQuery.of(context).size.height / 2.5,
+                        color: Colors.grey,
                         child: ListView.builder(
                             key: _listKey,
                             itemCount: agendados.length,
@@ -1261,7 +1566,10 @@ class _Armado2State extends State<Armado2> {
                   decoration:
                       BoxDecoration(borderRadius: BorderRadius.circular(100)),
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () async {
+                      await getEmpleadoPedido(userProvider.user!.id);
+                      await createPdf();
+                    },
                     child: Text(
                       "Informe",
                       style: TextStyle(color: Colors.white),

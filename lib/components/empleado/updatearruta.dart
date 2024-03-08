@@ -155,7 +155,8 @@ class _UpdateState extends State<Update> {
     connectToServer();
     getPedidos();
     getPedidosXConductor();
-  }
+  }   
+  
 
   void getPedidosXConductor() async {
     print("-------gettt----------");
@@ -764,6 +765,119 @@ class _UpdateState extends State<Update> {
                 ],
               ),
 
+              //CONDUCTORES V2
+              Positioned(
+                top: 10,
+                right: 500,
+                child:
+                Container(
+                  height: 200,
+                  width: MediaQuery.of(context).size.width/2.5,
+                  decoration: BoxDecoration(
+                    //color: Colors.purple
+                  ),
+                  child: Card(
+                    elevation: 10,
+                    child: ListView.builder(
+                      itemCount: 5,
+                      itemBuilder:(context,index){
+                        return Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                //RUTA
+                                Container(
+                                  color: Colors.green,
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.tour_outlined,size: 20,),
+                                      Text("1",style: TextStyle(fontSize: 20),)
+                                    ],
+                                  ),
+                                ),
+
+                                // CONDUCTOR
+                                Container(
+                                  color: Colors.amber,
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.account_circle_outlined,size: 20,),
+                                      Text("Panchita Camionera",style: TextStyle(fontSize: 20),)
+                                    ],
+                                  ),
+                                ),
+
+                                // CAMION
+                                Container(
+                                  color: Colors.green,
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.car_rental,size: 20,),
+                                      Text("Titan",style: TextStyle(fontSize: 20),)
+                                    ],
+                                  ),
+                                ),
+
+                                // Cantidades
+                                Container(
+                                  color: Colors.green,
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.water_drop,size: 20,),
+                                      Text("Bidón: 20",style: TextStyle(fontSize: 20),)
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  color: Colors.green,
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.water_drop,size: 20,),
+                                      Text("7Litros: 20",style: TextStyle(fontSize: 20),)
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  color: Colors.green,
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.water_drop,size: 20,),
+                                      Text("3Litros: 20",style: TextStyle(fontSize: 20),)
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  color: Colors.green,
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.water_drop,size: 20,),
+                                      Text("700ml: 20",style: TextStyle(fontSize: 20),)
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            )
+                            ,Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text("20 : Entregados",style: TextStyle(fontSize: 20),),
+                                Text("10 : En proceso",style: TextStyle(fontSize: 20),),
+                                Text("2 : Truncados",style: TextStyle(fontSize: 20),)
+                              ],
+                            )
+                          ],
+                        );
+                    }),
+                  ))/* Container(
+
+                  width: 500,
+                  height: MediaQuery.of(context).size.height/2,
+                  decoration: BoxDecoration(
+                    color: Color.fromARGB(255, 218, 205, 221)
+                  ),
+                ),*/
+              ),
               // CONDUCTORES
               Positioned(
                 top: 10,

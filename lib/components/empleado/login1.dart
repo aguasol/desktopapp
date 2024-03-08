@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import 'dart:convert';
 import 'package:desktopapp/components/empleado/inicio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Login1 extends StatefulWidget {
   const Login1({Key? key}) : super(key: key);
@@ -28,75 +28,71 @@ class _Login1State extends State<Login1> {
 
   Future<dynamic> loginsol(username, password) async {
     try {
-      var res = await http.post(Uri.parse(api+login),
+      var res = await http.post(Uri.parse(api + login),
           headers: {"Content-type": "application/json"},
-          body: json.encode({
-            "nickname": username,
-             "contrasena": password
-          }));
+          body: json.encode({"nickname": username, "contrasena": password}));
       print("RES.........");
       print(res.body);
 
-      if(res.statusCode==200){
+      if (res.statusCode == 200) {
         var data = json.decode(res.body);
         //EMPLEADO
-        if(data['usuario']['rol_id']==2){
+        if (data['usuario']['rol_id'] == 2) {
           userData = UserModel(
-            id: data['usuario']['id'] ?? 0,
-           nombre: data['usuario']['nombres'] ?? '',
-            apellidos: data['usuario']['apellidos'] ?? ''
-            );
-            setState(() {
-              status=200;
-              rol=2;
-            });
-                 print("STATUS");
-           print(status);
-           print("ROL");
-           print(rol);
+              id: data['usuario']['id'] ?? 0,
+              nombre: data['usuario']['nombres'] ?? '',
+              apellidos: data['usuario']['apellidos'] ?? '');
+          SharedPreferences empleadoShare =
+              await SharedPreferences.getInstance();
+          setState(() {
+            status = 200;
+            rol = 2;
+            empleadoShare.setInt('empleadoID', data['usuario'].id);
+          });
+
+          print("STATUS");
+          print(status);
+          print("ROL");
+          print(rol);
         }
         //ADMINISTRADOR
-        else if(data['usuario']['rol_id']==1){
-          userData=UserModel(
-            id: data['usuario']['id'],
-           nombre: data['usuario']['nombres'], 
-           apellidos: data['usuario']['apellidos']);
-           setState(() {
-             status=200;
-             rol=1;
-           });
-           print("STATUS");
-           print(status);
-           print("ROL");
-           print(rol);
+        else if (data['usuario']['rol_id'] == 1) {
+          userData = UserModel(
+              id: data['usuario']['id'],
+              nombre: data['usuario']['nombres'],
+              apellidos: data['usuario']['apellidos']);
+          setState(() {
+            status = 200;
+            rol = 1;
+          });
+          print("STATUS");
+          print(status);
+          print("ROL");
+          print(rol);
         }
 
         /// SETEAMOS EL PROVIDER CON UN USUARIO
-        Provider.of<UserProvider>(context,listen: false).updateUser(userData);
-
-      }
-      else if(res.statusCode==401){
+        Provider.of<UserProvider>(context, listen: false).updateUser(userData);
+      } else if (res.statusCode == 401) {
         var data = json.decode(res.body);
         print(data);
         setState(() {
-          status=401;
+          status = 401;
         });
-             print("STATUS");
-           print(status);
-           print("ROL");
-           print(rol);
-
-      }
-      else if(res.statusCode==404){
+        print("STATUS");
+        print(status);
+        print("ROL");
+        print(rol);
+      } else if (res.statusCode == 404) {
         var data = json.decode(res.body);
         print(data);
         setState(() {
-          status=404;
+          status = 404;
         });
-             print("STATUS");
-           print(status);
-           print("ROL");
-           print(rol);
+        print("STATUS");
+        print(status);
+        print("ROL");
+        print(rol);
       }
     } catch (e) {
       throw Exception('$e');
@@ -170,18 +166,16 @@ class _Login1State extends State<Login1> {
                     ),
                   ),
                 ),
-                 Container(
-                margin: const EdgeInsets.only(top: 20),
-                padding: const EdgeInsets.all(8),
-                height: 60,
-                width: MediaQuery.of(context).size.width / 5,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20)
-                ),
-                child: ElevatedButton(
-                  onPressed: () async {
-                   
+                Container(
+                  margin: const EdgeInsets.only(top: 20),
+                  padding: const EdgeInsets.all(8),
+                  height: 60,
+                  width: MediaQuery.of(context).size.width / 5,
+                  decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20)),
+                  child: ElevatedButton(
+                    onPressed: () async {
                       showDialog(
                         context: context,
                         builder: (BuildContext context) {
@@ -202,24 +196,24 @@ class _Login1State extends State<Login1> {
                         await loginsol(_usuario.text, _contrasena.text);
 
                         if (status == 200) {
-                         /* Navigator.of(context)
-                              .pop(); */// Cerrar el primer AlertDialog
+                          /* Navigator.of(context)
+                              .pop(); */ // Cerrar el primer AlertDialog
                           // EMPLEADO
                           if (rol == 2) {
-                             Navigator.push(
+                            Navigator.push(
                               context,
                               MaterialPageRoute(
                                   builder: (context) => const Inicio()),
                             );
-                          } 
+                          }
                           // ADMINISTRADOR
                           else if (rol == 1) {
-                              Navigator.push(
+                            Navigator.push(
                               context,
                               MaterialPageRoute(
                                   builder: (context) => const Crud()),
                             );
-                          } 
+                          }
                         } else if (status == 401) {
                           Navigator.of(context)
                               .pop(); // Cerrar el primer AlertDialog
@@ -256,29 +250,31 @@ class _Login1State extends State<Login1> {
                       } catch (e) {
                         print("Excepción durante el inicio de sesión: $e");
                       }
-                    
-                  },
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all(
-                        const Color.fromARGB(255, 1, 61, 109)),
-                  ),
-                  child: const Text(
-                    "Iniciar Sesión",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w300,
+                    },
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all(
+                          const Color.fromARGB(255, 1, 61, 109)),
+                    ),
+                    child: const Text(
+                      "Iniciar Sesión",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w300,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              Container(
-                margin: const EdgeInsets.only(top: 20),
-                child: Text("COTECSA ${tiempo.year}",
-                style: TextStyle(color: Colors.white,
-                fontSize: 25,
-                fontWeight: FontWeight.w500),),
-              )
+                Container(
+                  margin: const EdgeInsets.only(top: 20),
+                  child: Text(
+                    "COTECSA ${tiempo.year}",
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 25,
+                        fontWeight: FontWeight.w500),
+                  ),
+                )
               ]),
             ),
           ),
