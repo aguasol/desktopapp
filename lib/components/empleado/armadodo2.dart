@@ -23,17 +23,18 @@ import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
 
 class Vehiculo {
-  int id;
-  String nombre_modelo;
-  String placa;
-  int administrador_id;
-  bool seleccinado;
+  final int id;
+  final String nombre_modelo;
+  final String placa;
+  final int administrador_id;
+
+  bool seleccionado;
   Vehiculo(
       {required this.id,
       required this.nombre_modelo,
       required this.placa,
       required this.administrador_id,
-      required this.seleccinado});
+      this.seleccionado = false});
 }
 
 class Empleadopedido {
@@ -209,6 +210,7 @@ class _Armado2State extends State<Armado2> {
   Color sinSeleccionar = Colors.green;
   List<LatLng> seleccionadosUbicaciones = [];
   List<Conductor> obtenerConductor = [];
+  List<Vehiculo> obtenerVehiculo = [];
   int conductorid = 0;
 
   LatLng currentLcocation = LatLng(0, 0);
@@ -219,7 +221,7 @@ class _Armado2State extends State<Armado2> {
 
   // EMPLEADOPEDIDOLIST
   List<Empleadopedido> empleadopedido = [];
-  List<Vehiculo>vehiculos = [];
+  List<Vehiculo> vehiculos = [];
 
   // MARCADORES
   List<Marker> marcadores = [];
@@ -255,14 +257,14 @@ class _Armado2State extends State<Armado2> {
     var data = json.decode(res.body);
     List<Vehiculo> tempVehiculo = data.map<Vehiculo>((item) {
       return Vehiculo(
-          id: item['id'],
-          nombre_modelo: item['nombre_modelo'],
-          placa: item['placa'],
-          administrador_id: item['administrador_id'],
-          seleccinado: item['seleccinado']);
+        id: item['id'],
+        nombre_modelo: item['nombre_modelo'],
+        placa: item['placa'],
+        administrador_id: item['administrador_id'],
+      );
     }).toList();
     setState(() {
-        vehiculos = tempVehiculo;
+      vehiculos = tempVehiculo;
     });
   }
 
@@ -945,14 +947,14 @@ class _Armado2State extends State<Armado2> {
                           color: Colors.teal,
                         ),
                         child: Text(
-                          "Vehículos: 4",
+                          "Vehículos: ${vehiculos.length}",
                           style: TextStyle(
                               color: Colors.white, fontWeight: FontWeight.bold),
                         ),
                       ),
                       Container(
                         height: 200,
-                        width: 249,
+                        width: 400,
                         child: ListView.builder(
                           itemCount: vehiculos.length,
                           itemBuilder: (context, index) {
@@ -963,21 +965,44 @@ class _Armado2State extends State<Armado2> {
                                     color: Colors.teal,
                                     borderRadius: BorderRadius.circular(20)),
                                 child: ListTile(
-                                  trailing: Checkbox(
-                                    checkColor: Colors.white,
-                                    value:vehiculos[index].seleccinado, //conductorget[index].seleccionado,
-                                    onChanged: (value) {},
-                                  ),
-                                  title: Container(
-                                    child: Row(
+                                    trailing: Checkbox(
+                                      checkColor: const Color.fromARGB(
+                                          255, 209, 154, 154),
+                                      value: vehiculos[index]
+                                          .seleccionado, //conductorget[index].seleccionado,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          vehiculos[index].seleccionado =
+                                            value ?? false;
+                                        if (value == true) {}
+                                        });
+                                        
+                                      },
+                                    ),
+                                    title: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Text("ID: ${vehiculos[index].id}"),
-                                        Text("Nombre: ${vehiculos[index].nombre_modelo}"),
-                                        Text("Placa: ${vehiculos[index].placa}")
+                                        Text(
+                                          "ID: ${vehiculos[index].id}",
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        Text(
+                                          "Nombre: ${vehiculos[index].nombre_modelo}",
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        Text(
+                                          "Placa: ${vehiculos[index].placa}",
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold),
+                                        )
                                       ],
-                                    )
-                                  ),
-                                ));
+                                    )));
                           },
                         ),
                       )

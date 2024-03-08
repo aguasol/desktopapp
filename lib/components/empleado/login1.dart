@@ -33,6 +33,8 @@ class _Login1State extends State<Login1> {
           body: json.encode({"nickname": username, "contrasena": password}));
       print("RES.........");
       print(res.body);
+      //
+      SharedPreferences empleadoShare = await SharedPreferences.getInstance();
 
       if (res.statusCode == 200) {
         var data = json.decode(res.body);
@@ -42,12 +44,12 @@ class _Login1State extends State<Login1> {
               id: data['usuario']['id'] ?? 0,
               nombre: data['usuario']['nombres'] ?? '',
               apellidos: data['usuario']['apellidos'] ?? '');
-          SharedPreferences empleadoShare =
-              await SharedPreferences.getInstance();
+
           setState(() {
             status = 200;
             rol = 2;
-            empleadoShare.setInt('empleadoID', data['usuario'].id);
+            empleadoShare.setInt('empleadoID', data['usuario']['id']);
+            //
           });
 
           print("STATUS");
