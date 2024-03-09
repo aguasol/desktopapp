@@ -212,6 +212,7 @@ class _Armado2State extends State<Armado2> {
   List<Conductor> obtenerConductor = [];
   List<Vehiculo> obtenerVehiculo = [];
   int conductorid = 0;
+  int vehiculoid = 0;
 
   LatLng currentLcocation = LatLng(0, 0);
 
@@ -335,12 +336,14 @@ class _Armado2State extends State<Armado2> {
   }
 
   // POST RUTA
+  /// AQUI AGREGO EL CARRITO PUNNNNN
   Future<dynamic> createRuta(
-      empleado_id, conductor_id, distancia, tiempo) async {
+      empleado_id, conductor_id, vehiculo_id, distancia, tiempo) async {
     await http.post(Uri.parse(api + apiRutaCrear),
         headers: {"Content-type": "application/json"},
         body: jsonEncode({
           "conductor_id": conductor_id,
+          "vehiculo_i": vehiculo_id,
           "empleado_id": empleado_id,
           "distancia_km": distancia,
           "tiempo_ruta": tiempo
@@ -379,8 +382,8 @@ class _Armado2State extends State<Armado2> {
 
   // CREAR Y OBTENER
   Future<void> crearobtenerYactualizarRuta(
-      empleadoId, conductorid, distancia, tiempo, estado) async {
-    await createRuta(empleadoId, conductorid, distancia, tiempo);
+      empleadoId, conductorid, vehiculoid, distancia, tiempo, estado) async {
+    await createRuta(empleadoId, conductorid, vehiculoid, distancia, tiempo);
     await lastRutaEmpleado(empleadoId);
     await updatePedidoRuta(rutaIdLast, estado);
     socket.emit('Termine de Updatear', 'si');
@@ -942,6 +945,7 @@ class _Armado2State extends State<Armado2> {
                     children: [
                       Container(
                         padding: const EdgeInsets.all(8),
+                        margin: const EdgeInsets.only(bottom: 0),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20),
                           color: Colors.teal,
@@ -959,10 +963,10 @@ class _Armado2State extends State<Armado2> {
                           itemCount: vehiculos.length,
                           itemBuilder: (context, index) {
                             return Container(
-                                padding: const EdgeInsets.all(8),
-                                margin: const EdgeInsets.only(top: 10),
+                                padding: const EdgeInsets.all(0),
+                                margin: const EdgeInsets.only(top: 15),
                                 decoration: BoxDecoration(
-                                    color: Colors.teal,
+                                    color: Colors.teal.withOpacity(0.8),
                                     borderRadius: BorderRadius.circular(20)),
                                 child: ListTile(
                                     trailing: Checkbox(
@@ -973,10 +977,19 @@ class _Armado2State extends State<Armado2> {
                                       onChanged: (value) {
                                         setState(() {
                                           vehiculos[index].seleccionado =
-                                            value ?? false;
-                                        if (value == true) {}
+                                              value ?? false;
+                                          obtenerVehiculo = vehiculos
+                                              .where((element) =>
+                                                  element.seleccionado)
+                                              .toList();
+                                          if (value == true) {
+                                            setState(() {
+                                              vehiculoid = vehiculos[index].id;
+                                            });
+                                            print("---%%%% vehiculo id");
+                                            print(vehiculoid);
+                                          }
                                         });
-                                        
                                       },
                                     ),
                                     title: Row(
@@ -986,18 +999,21 @@ class _Armado2State extends State<Armado2> {
                                         Text(
                                           "ID: ${vehiculos[index].id}",
                                           style: TextStyle(
+                                              fontSize: 12,
                                               color: Colors.white,
                                               fontWeight: FontWeight.bold),
                                         ),
                                         Text(
                                           "Nombre: ${vehiculos[index].nombre_modelo}",
                                           style: TextStyle(
+                                              fontSize: 12,
                                               color: Colors.white,
                                               fontWeight: FontWeight.bold),
                                         ),
                                         Text(
                                           "Placa: ${vehiculos[index].placa}",
                                           style: TextStyle(
+                                              fontSize: 12,
                                               color: Colors.white,
                                               fontWeight: FontWeight.bold),
                                         )
@@ -1402,7 +1418,7 @@ class _Armado2State extends State<Armado2> {
                   width: 190,
                   height: MediaQuery.of(context).size.height / 1.2,
                   decoration: BoxDecoration(
-                      color: Colors.white,
+                      //color: Colors.white,
                       borderRadius: BorderRadius.circular(20)),
                   child: Column(
                     children: [
@@ -1423,7 +1439,8 @@ class _Armado2State extends State<Armado2> {
                                   margin: const EdgeInsets.only(top: 10),
                                   height: 100,
                                   decoration: BoxDecoration(
-                                      color: Color.fromARGB(255, 58, 108, 149),
+                                      color: Color.fromARGB(255, 58, 108, 149)
+                                          .withOpacity(0.8),
                                       borderRadius: BorderRadius.circular(20)),
                                   child: ListTile(
                                     trailing: Checkbox(
@@ -1644,8 +1661,15 @@ class _Armado2State extends State<Armado2> {
                                               obtenerConductor[i].seleccionado =
                                                   false;
                                             }
+                                            for (var i = 0;
+                                                i < obtenerVehiculo.length;
+                                                i++) {
+                                              obtenerVehiculo[i].seleccionado =
+                                                  false;
+                                            }
                                             pedidoSeleccionado = [];
                                             obtenerConductor = [];
+                                            obtenerVehiculo = [];
                                           });
                                           Navigator.pop(context, 'CANCELAR');
                                         },
@@ -1678,6 +1702,7 @@ class _Armado2State extends State<Armado2> {
                                           await crearobtenerYactualizarRuta(
                                             userProvider.user?.id,
                                             conductorid,
+                                            vehiculoid,
                                             0,
                                             0,
                                             "en proceso",
@@ -1689,6 +1714,11 @@ class _Armado2State extends State<Armado2> {
                                             setState(() {
                                               obtenerConductor[i].seleccionado =
                                                   false;
+                                            });
+                                          }
+                                          for(var i=0;i<obtenerVehiculo.length;i++){
+                                            setState(() {
+                                              obtenerVehiculo[i].seleccionado=false;
                                             });
                                           }
 

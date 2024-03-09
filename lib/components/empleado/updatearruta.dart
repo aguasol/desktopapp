@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:windows_notification/notification_message.dart';
 import 'package:windows_notification/windows_notification.dart';
 import 'dart:io';
@@ -706,8 +707,9 @@ class _UpdateState extends State<Update> {
 
   Future<dynamic> obtenerPedidosPorConductor(int idConductor) async {
     print("-{------------}");
+    final SharedPreferences empleadoShare = await SharedPreferences.getInstance();
     var res = await http.get(
-      Uri.parse(api + pedidosConductor + idConductor.toString()),
+      Uri.parse(api + pedidosConductor + idConductor.toString()+'/'+empleadoShare.getInt('empleadoId').toString()),
       headers: {"Content-type": "application/json"},
     );
     try {
