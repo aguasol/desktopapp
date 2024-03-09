@@ -156,15 +156,14 @@ class _UpdateState extends State<Update> {
     connectToServer();
     getPedidos();
     getPedidosXConductor();
-  }   
-  
+  }
 
   void getPedidosXConductor() async {
     print("-------gettt----------");
     print(conductorget.length);
 
     List<Pedido> iterarPedido = [];
-
+    SharedPreferences empleadoShare = await SharedPreferences.getInstance();
     for (var k = 0; k < conductorget.length; k++) {
       List<Pedido> pedidostemp =
           await obtenerPedidosPorConductor(conductorget[k].id);
@@ -707,9 +706,14 @@ class _UpdateState extends State<Update> {
 
   Future<dynamic> obtenerPedidosPorConductor(int idConductor) async {
     print("-{------------}");
-    final SharedPreferences empleadoShare = await SharedPreferences.getInstance();
+    final SharedPreferences empleadoShare =
+        await SharedPreferences.getInstance();
     var res = await http.get(
-      Uri.parse(api + pedidosConductor + idConductor.toString()+'/'+empleadoShare.getInt('empleadoId').toString()),
+      Uri.parse(api +
+          pedidosConductor +
+          idConductor.toString() +
+          '/' +
+          empleadoShare.getInt('empleadoID').toString()),
       headers: {"Content-type": "application/json"},
     );
     try {
@@ -768,7 +772,7 @@ class _UpdateState extends State<Update> {
               ),
 
               //CONDUCTORES V2
-              Positioned(
+              /* Positioned(
                 top: 10,
                 right: 500,
                 child:
@@ -879,22 +883,22 @@ class _UpdateState extends State<Update> {
                     color: Color.fromARGB(255, 218, 205, 221)
                   ),
                 ),*/
-              ),
+              ),*/
               // CONDUCTORES
               Positioned(
                 top: 10,
-                right: 10,
+                right: 00,
                 child: Container(
                     padding: const EdgeInsets.all(8),
                     margin: const EdgeInsets.only(right: 20),
-                    width: MediaQuery.of(context).size.width / 8,
+                    width: MediaQuery.of(context).size.width / 3,
                     height: MediaQuery.of(context).size.height > 793
                         ? 700
                         : MediaQuery.of(context).size.height <= 793
                             ? 500
                             : 0,
                     decoration: BoxDecoration(
-                        color: Colors.white,
+                       // color: Colors.white,
                         borderRadius: BorderRadius.circular(20)),
                     child: ListView.builder(
                         itemCount: conductorget.length,
@@ -904,59 +908,65 @@ class _UpdateState extends State<Update> {
                           return Container(
                               margin: const EdgeInsets.only(top: 10, right: 20),
                               padding: const EdgeInsets.all(5),
-                              height: 600,
+                              height: 300,
                               decoration: BoxDecoration(
-                                  color: Color.fromARGB(255, 58, 108, 149)
+                                  color: Colors.teal
                                       .withOpacity(0.9),
                                   borderRadius: BorderRadius.circular(20)),
                               child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(20),
-                                    decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(20),
-                                        color: containerColors[
-                                            index1 % containerColors.length]),
-                                    child: Text(
-                                      "Conductor N° ${conductorget[index1].id}",
-                                      style: TextStyle(
-                                          fontSize: 20,
-                                          color: Colors
-                                              .white // containerColors[index1 % containerColors.length],
-                                          ),
-                                    ),
-                                  ),
                                   Row(
                                     children: [
                                       Container(
-                                        margin: const EdgeInsets.only(top: 5),
-                                        padding: const EdgeInsets.all(20),
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                            color: containerColors[index1 %
+                                                containerColors.length]),
+                                        child: Text(
+                                          "Conductor N° ${conductorget[index1].id}",
+                                          style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color: const Color.fromARGB(255, 9, 7, 7) // containerColors[index1 % containerColors.length],
+                                              ),
+                                        ),
+                                      ),
+                                      Container(
+                                        
+                                        padding: const EdgeInsets.all(8),
                                         decoration: BoxDecoration(
                                             borderRadius:
                                                 BorderRadius.circular(20),
                                             color: Colors.white),
                                         child: Text(
                                           "Ruta N° ${conductorget[index1].ruta}",
-                                          style: TextStyle(fontSize: 12),
+                                          style: TextStyle(fontWeight: FontWeight.bold,fontSize: 12
+                                          ),
                                         ),
                                       ),
                                       Container(
-                                        margin: const EdgeInsets.only(top: 5),
-                                        padding: const EdgeInsets.all(20),
+                                        
+                                        padding: const EdgeInsets.all(8),
                                         decoration: BoxDecoration(
                                             borderRadius:
                                                 BorderRadius.circular(20),
                                             color: Colors.white),
                                         child: Text(
                                           "Cantidad: ${mapaConductorXPedido[conductorget[index1]]?.length}",
-                                          style: TextStyle(fontSize: 10),
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 12),
                                         ),
                                       ),
                                     ],
                                   ),
                                   Container(
-                                    padding: const EdgeInsets.all(5),
-                                    height: 280,
+                                    padding: const EdgeInsets.all(0),
+                                    height: 150,
+                                    color: Colors.green,
                                     child: ListView.builder(
                                         itemCount: mapaConductorXPedido[
                                                     conductorget[index1]]
@@ -967,7 +977,7 @@ class _UpdateState extends State<Update> {
                                           return Container(
                                             margin:
                                                 const EdgeInsets.only(top: 3),
-                                            padding: const EdgeInsets.all(10),
+                                            padding: const EdgeInsets.all(5),
                                             decoration: BoxDecoration(
                                                 color: mapaConductorXPedido[
                                                                     conductorget[
@@ -991,35 +1001,37 @@ class _UpdateState extends State<Update> {
                                                             : Colors.white,
                                                 borderRadius:
                                                     BorderRadius.circular(20)),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                               children: [
                                                 Text(
                                                   "Pedido N° ${mapaConductorXPedido[conductorget[index1]]?[index2].id}",
                                                   style: TextStyle(
+                                                      fontSize: 12,
+                                                      fontWeight: FontWeight.bold,
                                                       color: Colors.white),
                                                 ),
                                                 Text(
                                                     "Estado: ${mapaConductorXPedido[conductorget[index1]]?[index2].estado}",
                                                     style: TextStyle(
+                                                      fontSize: 12,
+                                                      fontWeight: FontWeight.bold,
                                                         color: Colors.white)),
-                                                Column(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.start,
-                                                  children: [
-                                                    Text(
+                                                Text(
                                                         "Nombre: ${mapaConductorXPedido[conductorget[index1]]?[index2].nombre}",
                                                         style: TextStyle(
+                                                          fontSize: 12,
+                                                      fontWeight: FontWeight.bold,
                                                             color:
                                                                 Colors.white)),
                                                     Text(
                                                         "Teléfono: ${mapaConductorXPedido[conductorget[index1]]?[index2].telefono}",
                                                         style: TextStyle(
+                                                          fontSize: 12,
+                                                      fontWeight: FontWeight.bold,
                                                             color:
                                                                 Colors.white)),
-                                                  ],
-                                                )
+                                                
                                               ],
                                             ),
                                           );
@@ -1285,8 +1297,8 @@ class _UpdateState extends State<Update> {
               ),
 
               Positioned(
-                top: 10,
-                right: 280,
+                top: 80,
+                left: 10,
                 child: Container(
                   padding: const EdgeInsets.all(20),
                   height: 250,
