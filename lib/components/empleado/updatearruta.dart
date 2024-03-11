@@ -269,7 +269,7 @@ class _UpdateState extends State<Update> {
                         padding: const EdgeInsets.all(0),
                         decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(50),
-                            color: Colors.white,
+                            color: Colors.white.withOpacity(0.5),
                             border: Border.all(
                                 width: 3,
                                 color: const Color.fromARGB(255, 19, 72, 115))),
@@ -890,7 +890,7 @@ class _UpdateState extends State<Update> {
                 right: 00,
                 child: Container(
                     padding: const EdgeInsets.all(8),
-                    margin: const EdgeInsets.only(right: 20),
+                    margin: const EdgeInsets.only(right: 0),
                     width: MediaQuery.of(context).size.width / 3,
                     height: MediaQuery.of(context).size.height > 793
                         ? 700
@@ -908,10 +908,9 @@ class _UpdateState extends State<Update> {
                           return Container(
                               margin: const EdgeInsets.only(top: 10, right: 20),
                               padding: const EdgeInsets.all(5),
-                              height: 300,
+                              height: 200,
                               decoration: BoxDecoration(
-                                  color: Colors.teal
-                                      .withOpacity(0.9),
+                                  //color: Colors.teal.withOpacity(0.9),
                                   borderRadius: BorderRadius.circular(20)),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -964,9 +963,13 @@ class _UpdateState extends State<Update> {
                                     ],
                                   ),
                                   Container(
-                                    padding: const EdgeInsets.all(0),
+                                    margin: const EdgeInsets.only(top:2),
+                                    padding: const EdgeInsets.all(10),
                                     height: 150,
-                                    color: Colors.green,
+                                    decoration: BoxDecoration(
+                                      color: Colors.teal.withOpacity(0.8),
+                                      borderRadius: BorderRadius.circular(20)
+                                    ),
                                     child: ListView.builder(
                                         itemCount: mapaConductorXPedido[
                                                     conductorget[index1]]
@@ -1051,7 +1054,8 @@ class _UpdateState extends State<Update> {
                   padding: const EdgeInsets.all(5),
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
-                      color: Colors.white),
+                     // color: Colors.white
+                      ),
                   // color: Color.fromARGB(255, 221, 214, 214),
                   // height: 180,
                   width: MediaQuery.of(context).size.width / 2.05,
@@ -1163,7 +1167,8 @@ class _UpdateState extends State<Update> {
                   padding: const EdgeInsets.all(5),
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
-                      color: Colors.white),
+                     // color: Colors.white
+                      ),
                   // color: Color.fromARGB(255, 221, 214, 214),
                   //height: 180,
                   width: MediaQuery.of(context).size.width / 2.05,
