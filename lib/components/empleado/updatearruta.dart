@@ -898,7 +898,7 @@ class _UpdateState extends State<Update> {
                             ? 500
                             : 0,
                     decoration: BoxDecoration(
-                       // color: Colors.white,
+                        // color: Colors.white,
                         borderRadius: BorderRadius.circular(20)),
                     child: ListView.builder(
                         itemCount: conductorget.length,
@@ -929,12 +929,15 @@ class _UpdateState extends State<Update> {
                                           style: TextStyle(
                                               fontSize: 12,
                                               fontWeight: FontWeight.bold,
-                                              color: const Color.fromARGB(255, 9, 7, 7) // containerColors[index1 % containerColors.length],
+                                              color: const Color.fromARGB(
+                                                  255,
+                                                  9,
+                                                  7,
+                                                  7) // containerColors[index1 % containerColors.length],
                                               ),
                                         ),
                                       ),
                                       Container(
-                                        
                                         padding: const EdgeInsets.all(8),
                                         decoration: BoxDecoration(
                                             borderRadius:
@@ -942,12 +945,12 @@ class _UpdateState extends State<Update> {
                                             color: Colors.white),
                                         child: Text(
                                           "Ruta N° ${conductorget[index1].ruta}",
-                                          style: TextStyle(fontWeight: FontWeight.bold,fontSize: 12
-                                          ),
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 12),
                                         ),
                                       ),
                                       Container(
-                                        
                                         padding: const EdgeInsets.all(8),
                                         decoration: BoxDecoration(
                                             borderRadius:
@@ -956,20 +959,20 @@ class _UpdateState extends State<Update> {
                                         child: Text(
                                           "Cantidad: ${mapaConductorXPedido[conductorget[index1]]?.length}",
                                           style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 12),
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 12),
                                         ),
                                       ),
                                     ],
                                   ),
                                   Container(
-                                    margin: const EdgeInsets.only(top:2),
+                                    margin: const EdgeInsets.only(top: 2),
                                     padding: const EdgeInsets.all(10),
                                     height: 150,
                                     decoration: BoxDecoration(
-                                      color: Colors.teal.withOpacity(0.8),
-                                      borderRadius: BorderRadius.circular(20)
-                                    ),
+                                        color: Colors.teal.withOpacity(0.8),
+                                        borderRadius:
+                                            BorderRadius.circular(20)),
                                     child: ListView.builder(
                                         itemCount: mapaConductorXPedido[
                                                     conductorget[index1]]
@@ -1005,36 +1008,39 @@ class _UpdateState extends State<Update> {
                                                 borderRadius:
                                                     BorderRadius.circular(20)),
                                             child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
                                               children: [
                                                 Text(
                                                   "Pedido N° ${mapaConductorXPedido[conductorget[index1]]?[index2].id}",
                                                   style: TextStyle(
                                                       fontSize: 12,
-                                                      fontWeight: FontWeight.bold,
+                                                      fontWeight:
+                                                          FontWeight.bold,
                                                       color: Colors.white),
                                                 ),
                                                 Text(
                                                     "Estado: ${mapaConductorXPedido[conductorget[index1]]?[index2].estado}",
                                                     style: TextStyle(
-                                                      fontSize: 12,
-                                                      fontWeight: FontWeight.bold,
+                                                        fontSize: 12,
+                                                        fontWeight:
+                                                            FontWeight.bold,
                                                         color: Colors.white)),
                                                 Text(
-                                                        "Nombre: ${mapaConductorXPedido[conductorget[index1]]?[index2].nombre}",
-                                                        style: TextStyle(
-                                                          fontSize: 12,
-                                                      fontWeight: FontWeight.bold,
-                                                            color:
-                                                                Colors.white)),
-                                                    Text(
-                                                        "Teléfono: ${mapaConductorXPedido[conductorget[index1]]?[index2].telefono}",
-                                                        style: TextStyle(
-                                                          fontSize: 12,
-                                                      fontWeight: FontWeight.bold,
-                                                            color:
-                                                                Colors.white)),
-                                                
+                                                    "Nombre: ${mapaConductorXPedido[conductorget[index1]]?[index2].nombre}",
+                                                    style: TextStyle(
+                                                        fontSize: 12,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: Colors.white)),
+                                                Text(
+                                                    "Teléfono: ${mapaConductorXPedido[conductorget[index1]]?[index2].telefono}",
+                                                    style: TextStyle(
+                                                        fontSize: 12,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: Colors.white)),
                                               ],
                                             ),
                                           );
@@ -1053,9 +1059,9 @@ class _UpdateState extends State<Update> {
                 child: Container(
                   padding: const EdgeInsets.all(5),
                   decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                     // color: Colors.white
-                      ),
+                    borderRadius: BorderRadius.circular(20),
+                    // color: Colors.white
+                  ),
                   // color: Color.fromARGB(255, 221, 214, 214),
                   // height: 180,
                   width: MediaQuery.of(context).size.width / 2.05,
@@ -1166,9 +1172,9 @@ class _UpdateState extends State<Update> {
                 child: Container(
                   padding: const EdgeInsets.all(5),
                   decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                     // color: Colors.white
-                      ),
+                    borderRadius: BorderRadius.circular(20),
+                    // color: Colors.white
+                  ),
                   // color: Color.fromARGB(255, 221, 214, 214),
                   //height: 180,
                   width: MediaQuery.of(context).size.width / 2.05,
@@ -1398,8 +1404,7 @@ class _UpdateState extends State<Update> {
                                                 _ruta.text = '';
                                                 pedidoSeleccionado = [];
                                               });
-                                              Navigator.pop(
-                                                  context, 'Cancelar');
+                                              Navigator.pop(context, 'CANCELAR');
                                             },
                                             style: ButtonStyle(
                                                 backgroundColor:
@@ -1418,6 +1423,18 @@ class _UpdateState extends State<Update> {
                                                     pedidoSeleccionado
                                                         .isNotEmpty
                                                 ? () async {
+                                                    showDialog(
+                                                      context: context,
+                                                      barrierDismissible: false,
+                                                      builder: (BuildContext
+                                                          context) {
+                                                        return Center(
+                                                          child:
+                                                              CircularProgressIndicator(),
+                                                        );
+                                                      },
+                                                    );
+
                                                     for (var i = 0;
                                                         i <
                                                             pedidoSeleccionado
@@ -1442,9 +1459,19 @@ class _UpdateState extends State<Update> {
                                                           int.parse(
                                                               _ruta.text));
                                                     }
+                                                    Navigator.pop(context);
                                                     setState(() {
                                                       // ACTUALIZAMOS LA VISTA
                                                       pedidoSeleccionado = [];
+                                                    });
+                                                    setState(() {
+                                                      
+                                                    });
+                                                    Navigator.pop(context,'SI');
+                                                   
+                                                    
+                                                    setState(() {
+                                                      
                                                     });
                                                   }
                                                 : null,

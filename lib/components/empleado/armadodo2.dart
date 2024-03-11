@@ -1633,7 +1633,7 @@ class _Armado2State extends State<Armado2> {
                       BoxDecoration(borderRadius: BorderRadius.circular(100)),
                   child: ElevatedButton(
                     onPressed: (pedidoSeleccionado.isNotEmpty &&
-                            obtenerConductor.isNotEmpty)
+                            obtenerConductor.isNotEmpty && obtenerVehiculo.isNotEmpty)
                         ? () async {
                             showDialog<String>(
                               context: context,
@@ -1734,7 +1734,7 @@ class _Armado2State extends State<Armado2> {
                                               ?.setState(() {});
 
                                           Navigator.pop(context, 'CONFIRMAR');
-                                          setState(() {});
+                                          setState(() {getPedidos();});
                                         },
                                         style: ButtonStyle(
                                             backgroundColor:
