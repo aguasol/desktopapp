@@ -231,10 +231,10 @@ class _Armado2State extends State<Armado2> {
   List<Marker> normalmarker = [];
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
 
-  final _winNotifyPlugin = WindowsNotification(
+ /* final _winNotifyPlugin = WindowsNotification(
     applicationId:
         r"{D65231B0-B2F1-4857-A4CE-A8E7C6EA7D27}\WindowsPowerShell\v1.0\powershell.exe",
-  );
+  );*/
   Map<LatLng, Color> coloreSeleccionados = {};
   int informe = 0;
   String nombre = '';
@@ -250,37 +250,36 @@ class _Armado2State extends State<Armado2> {
     // marcadoresPut();
   }
 
+
+/// MARCA ERROR AQUI.....................................................
   Future<dynamic> getVehiculos() async {
     SharedPreferences empleadoShare = await SharedPreferences.getInstance();
     try {
       print("...............................URL DE GETVEHICULOS");
-      print(api +
-              apiVehiculos +
-              empleadoShare.getInt('empleadoID').toString());
+      print(api + apiVehiculos + empleadoShare.getInt('empleadoID').toString());
       var res = await http.get(
           Uri.parse(api +
               apiVehiculos +
               empleadoShare.getInt('empleadoID').toString()),
           headers: {"Content-type": "application/json"});
-          print("........................................RES BODY");
-          print(res.body);
+      print("........................................RES BODY");
+      print(res.body);
       var data = json.decode(res.body);
       print("......................data vehiculos x empelado");
       print(data);
-      if(data is List){
-        List<Vehiculo> tempVehiculo = (data as List).map<Vehiculo>((item) {
-        return Vehiculo(
-          id: item['id'],
-          nombre_modelo: item['nombre_modelo'],
-          placa: item['placa'],
-          administrador_id: item['administrador_id'],
-        );
-      }).toList();
-      setState(() {
-        vehiculos = tempVehiculo;
-      });
+      if (data is List) {
+        List<Vehiculo> tempVehiculo = data.map<Vehiculo>((item) {
+          return Vehiculo(
+            id: item['id'],
+            nombre_modelo: item['nombre_modelo'],
+            placa: item['placa'],
+            administrador_id: item['administrador_id'],
+          );
+        }).toList();
+        setState(() {
+          vehiculos = tempVehiculo;
+        });
       }
-      
     } catch (e) {
       throw Exception("$e");
     }
@@ -431,6 +430,7 @@ class _Armado2State extends State<Armado2> {
     return (valor1 - valor2).abs() < tolerancia;
   }
 
+  
   // FUNCIONES
   void marcadoresPut(tipo) {
     if (tipo == 'agendados') {
@@ -759,120 +759,12 @@ class _Armado2State extends State<Armado2> {
       print('Conexión desconectada: EMPLEADO');
     });
 
-    socket.on('nuevoPedido', (data) async {
+    /*socket.on('nuevoPedido', (data) {
       if (data['tipo'] == 'express') {
-        String imagePath = await getImageBytes('lib/imagenes/amberfinal.png');
-        NotificationMessage message = NotificationMessage.fromPluginTemplate(
-          "Pedido",
-          " Llegó un pedido !",
-          "${data['tipo']}",
-          largeImage: imagePath,
-        );
-        _winNotifyPlugin.showNotificationPluginTemplate(message);
+        _showNotification(data['tipo']);
       } else {
-        String imagePath = await getImageBytes('lib/imagenes/bluefinal.png');
-        NotificationMessage message = NotificationMessage.fromPluginTemplate(
-          "Pedido",
-          " Llegó un pedido !",
-          "${data['tipo']}",
-          largeImage: imagePath,
-        );
-        _winNotifyPlugin.showNotificationPluginTemplate(message);
+        _showNotification(data['tipo']);
       }
-    });
-    // CREATE PEDIDO WS://API/PRODUCTS
-    /* socket.on('nuevoPedido', (data) {
-      print('Nuevo Pedido: $data');
-      setState(() {
-        print("DENTOR DE nuevoPèdido");
-        DateTime fechaparseada = DateTime.parse(data['fecha'].toString());
-
-        // CREADO POR EL SOCKET
-        Pedido nuevoPedido = Pedido(
-          id: data['id'],
-          ruta_id: data['ruta_id'] ?? 0,
-          nombre: data['nombre'] ?? '',
-          apellidos: data['apellidos'] ?? '',
-          telefono: data['telefono'] ?? '',
-          latitud: data['latitud']?.toDouble() ?? 0.0,
-          longitud: data['longitud']?.toDouble() ?? 0.0,
-          distrito: data['distrito'],
-          subtotal: data['subtotal']?.toDouble() ?? 0.0,
-          descuento: data['descuento']?.toDouble() ?? 0.0,
-          total: data['total']?.toDouble() ?? 0.0,
-          observacion: data['observacion'],
-          fecha: data['fecha'],
-          tipo: data['tipo'],
-          estado: data['estado'],
-        );
-
-        if (nuevoPedido.estado == 'pendiente') {
-          print('esta pendiente');
-          print(nuevoPedido);
-          if (nuevoPedido.tipo == 'normal') {
-            print('es normal');
-            if (fechaparseada.year == now.year &&
-                fechaparseada.month == now.month &&
-                fechaparseada.day == now.day) {
-              print("day");
-              print(now.day);
-              print("month");
-              print(now.month);
-              print("year");
-              print(now.year);
-              print("parse");
-              print(fechaparseada.hour);
-              if (fechaparseada.hour < 13) {
-                print('es antes de la 1');
-                hoypedidos.add(nuevoPedido);
-
-                // OBTENER COORDENADAS DE LOS PEDIDOS
-
-                LatLng tempcoord = LatLng(
-                    nuevoPedido.latitud ?? 0.0, nuevoPedido.longitud ?? 0.0);
-                setState(() {
-                  puntosnormal.add(tempcoord);
-                });
-                marcadoresPut("normal");
-                setState(() {
-                  // ACTUALIZAMOS LA VISTA
-                });
-              }
-            } else {
-              agendados.add(nuevoPedido);
-            }
-          } else if (nuevoPedido.tipo == 'express') {
-            print(nuevoPedido);
-
-            hoyexpress.add(nuevoPedido);
-
-            // OBTENER COORDENADAS DE LOS EXPRESS
-            LatLng tempcoordexpress =
-                LatLng(nuevoPedido.latitud ?? 0.0, nuevoPedido.longitud ?? 0.0);
-            setState(() {
-              puntosexpress.add(tempcoordexpress);
-            });
-            marcadoresPut("express");
-            setState(() {
-              // ACTUALIZAMOS LA VISTA
-            });
-          }
-        }
-        // SI EL PEDIDO TIENE FECHA DE HOY Y ES NORMAL
-      });
-
-      // Desplaza automáticamente hacia el último elemento
-      _scrollController3.animateTo(
-        _scrollController3.position.maxScrollExtent,
-        duration: Duration(milliseconds: 800),
-        curve: Curves.easeInOutQuart,
-      );
-
-      _scrollController2.animateTo(
-        _scrollController2.position.maxScrollExtent,
-        duration: Duration(milliseconds: 800),
-        curve: Curves.easeInOutQuart,
-      );
     });*/
 
     socket.onConnectError((error) {
@@ -895,33 +787,48 @@ class _Armado2State extends State<Armado2> {
       });
     });
 
-    socket.on('vista', (data) async {
+    socket.on('vista', (data)  {
       print("...recibiendo..");
       //getPedidos();
       print(data);
-      //socket.emit(await getPedidos());
-
-      /*  try {
-    List<Pedido> nuevosPedidos = List<Pedido>.from(data.map((pedidoData) => Pedido(
-      id: pedidoData['id'],
-      ruta_id: pedidoData['ruta_id'],
-      cliente_id: pedidoData['cliente_id'],
-      cliente_nr_id: pedidoData['cliente_nr_id'],
-      monto_total: pedidoData['monto_total'],
-      fecha: pedidoData['fecha'],
-      tipo: pedidoData['tipo'],
-      estado: pedidoData['estado'],
-      seleccionado: false,
-    )));
-
-    setState(() {
-      agendados = nuevosPedidos;
-    });
-  } catch (error) {
-    print('Error al actualizar la vista: $error');
-  }*/
     });
   }
+ /*void _showNotification(String tipo) async {
+    if (tipo == 'express') {
+      String imagePath = await getImageBytes('lib/imagenes/amberfinal.png');
+      NotificationMessage message = NotificationMessage.fromPluginTemplate(
+        "Pedido",
+        "Llegó un pedido!",
+        "$tipo",
+        largeImage: imagePath,
+      );
+      _winNotifyPlugin.showNotificationPluginTemplate(message);
+
+      // Ejecutar en el hilo principal de Flutter
+      MethodChannel('tu_canal').invokeMethod('mostrarNotificacion', {
+        'title': message.title,
+        'body': message.body,
+        'largeImage': message.largeImage,
+      });
+    } else {
+      String imagePath = await getImageBytes('lib/imagenes/bluefinal.png');
+      NotificationMessage message = NotificationMessage.fromPluginTemplate(
+        "Pedido",
+        "Llegó un pedido!",
+        "$tipo",
+        largeImage: imagePath,
+      );
+      _winNotifyPlugin.showNotificationPluginTemplate(message);
+
+      // Ejecutar en el hilo principal de Flutter
+      MethodChannel('tu_canal').invokeMethod('mostrarNotificacion', {
+        'title': message.title,
+        'body': message.body,
+        'largeImage': message.largeImage,
+      });
+    }*/
+  
+
 
   @override
   Widget build(BuildContext context) {

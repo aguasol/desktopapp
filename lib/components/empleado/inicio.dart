@@ -134,7 +134,7 @@ class _InicioState extends State<Inicio> {
   String apiLastClienteNR = '/api/last_clientenr/';
   DateTime tiempoActual = DateTime.now();
   double montoMinimo = 10;
-  int empleadoID = 1;
+
   int lastClienteNR = 0;
   int lastUbic = 0;
   double montoTotalPedido = 0;
@@ -361,6 +361,8 @@ class _InicioState extends State<Inicio> {
     if (_formKey.currentState!.validate()) {
       print('6) IF que valida que los datos del cliente NR estén llenos');
       print("6.1) datos personales");
+      print("....6.2 ....ID DEL EMPLEADO");
+      print(empleadoID);
       print("${_nombres.text} , ${_apellidos.text}");
       await createNR(
           empleadoID,
