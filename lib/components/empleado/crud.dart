@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 
@@ -9,6 +11,20 @@ import 'package:provider/provider.dart';
 import 'package:desktopapp/components/provider/user_provider.dart';
 import 'package:lottie/lottie.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class Vehiculo {
+  int? id;
+  String nombre_modelo;
+  String placa;
+  int? administrador_id;
+
+  Vehiculo(
+      {required this.id,
+      required this.nombre_modelo,
+      required this.placa,
+      this.administrador_id});
+}
 
 class Conductor {
   int? id;
@@ -75,21 +91,28 @@ class _CrudState extends State<Crud> {
   String apiClima =
       "https://api.openweathermap.org/data/2.5/weather?q=Arequipa&appid=08607bf479e5f47f5b768154953d10f6";
 
-  TextEditingController _nombre = TextEditingController();
-  TextEditingController _apellidos = TextEditingController();
-  TextEditingController _dni = TextEditingController();
-  TextEditingController _fechanacimiento = TextEditingController();
-  TextEditingController _usuario = TextEditingController();
-  TextEditingController _contrasena = TextEditingController();
-  TextEditingController _email = TextEditingController();
+  final TextEditingController _nombre = TextEditingController();
+  final TextEditingController _apellidos = TextEditingController();
+  final TextEditingController _dni = TextEditingController();
+  final TextEditingController _fechanacimiento = TextEditingController();
+  final TextEditingController _usuario = TextEditingController();
+  final TextEditingController _contrasena = TextEditingController();
+  final TextEditingController _email = TextEditingController();
+
+  final TextEditingController _nombremodelo = TextEditingController();
+  final TextEditingController _placa = TextEditingController();
 
   String apiUrl = dotenv.env['API_URL'] ?? '';
   String apiEmpleado = '/api/user_empleado';
   String apiConductor = '/api/user_conductor';
+  String apiVehiculo = '/api/vehiculo';
+  String apiVehiculoAdmin = '/api/vehiculoadmin/';
   late int status = 0;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKey2 = GlobalKey<FormState>();
   List<Conductor> conductores = [];
   List<Empleado> empleados = [];
+  List<Vehiculo> vehiculos = [];
 
   late double temperatura = 0.0;
   DateTime nows = DateTime.now();
@@ -105,11 +128,75 @@ class _CrudState extends State<Crud> {
     getTemperature();
     getEmpleado();
     getConductores();
+    final userProvider = context.read<UserProvider>();
+    final idadmin = userProvider.user?.id;
+    getVehiculo(idadmin);
+  }
+
+  // VEHICULO
+  Future<dynamic> createVehiculo(nombremodelo, placa, adminid) async {
+    try {
+      print("crear vehiculo");
+      print(nombremodelo);
+      print(placa);
+      print(apiUrl + apiVehiculo);
+      var res = await http.post(Uri.parse(apiUrl + apiVehiculo),
+          headers: {"Content-type": "application/json"},
+          body: jsonEncode({
+            "nombre_modelo": nombremodelo,
+            "placa": placa,
+            "administrador_id": adminid
+          }));
+      if (res.statusCode == 200) {
+        setState(() {
+          status = 200;
+        });
+      } else if (res.statusCode == 409) {
+        setState(() {
+          status = 409;
+        });
+      }
+    } catch (e) {
+      throw Exception('$e');
+    }
+  }
+
+  Future<dynamic> getVehiculo(idadmin) async {
+    var res = await http.get(
+      Uri.parse(apiUrl + apiVehiculoAdmin + idadmin.toString()),
+      headers: {"Content-type": "application/json"},
+    );
+    try {
+      var data = json.decode(res.body);
+      print("data admin vehiculo");
+      print(data);
+      List<Vehiculo> tempVehiculo = data.map<Vehiculo>((data) {
+        return Vehiculo(
+          id: data['id'],
+          nombre_modelo: data['nombre_modelo'],
+          placa: data['placa'],
+        );
+      }).toList();
+      setState(() {
+        vehiculos = tempVehiculo;
+      });
+    } catch (e) {
+      throw Exception('$e');
+    }
+  }
+
+  Future<dynamic> deleteVehiculo(id) async {
+    var res = await http.delete(
+        Uri.parse(apiUrl + apiVehiculo + '/' + id.toString()),
+        headers: {"Content-type": "application/json"});
+    if (res.statusCode == 200) {
+      print("me booro");
+    }
   }
 
   // EMPLEADO
-  Future<dynamic> createEmpleado(
-      nombre, apellidos, dni, fecha, usuario, contrasena, email) async {
+  Future<dynamic> createEmpleado(nombre, apellidos, dni, fecha, usuario,
+      contrasena, email, idadmin) async {
     try {
       // Parsear la fecha de nacimiento a DateTime
       DateTime fechaNacimiento = DateFormat('d/M/yyyy').parse(fecha);
@@ -130,6 +217,7 @@ class _CrudState extends State<Crud> {
             "codigo_empleado": "",
             "dni": dni,
             "fecha_nacimiento": fechaFormateada,
+            "administrador_id": idadmin
           }));
       if (res.statusCode == 200) {
         setState(() {
@@ -184,8 +272,8 @@ class _CrudState extends State<Crud> {
   }
 
 // CONDUCTOR
-  Future<dynamic> createConductor(
-      nombre, apellidos, dni, fecha, usuario, contrasena, email) async {
+  Future<dynamic> createConductor(nombre, apellidos, dni, fecha, usuario,
+      contrasena, email, idadmin) async {
     try {
       print("creando conduc");
       DateTime fechaNacimiento = DateFormat('d/M/yyyy').parse(fecha);
@@ -206,6 +294,7 @@ class _CrudState extends State<Crud> {
             "licencia": "",
             "dni": dni,
             "fecha_nacimiento": fechaFormateada,
+            "administrador_id": idadmin
           }));
       if (res.statusCode == 200) {
         setState(() {
@@ -375,114 +464,249 @@ class _CrudState extends State<Crud> {
                         ],
                       ),
                     ),
+
+                    // FORMULARIO
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                           color: Colors.grey,
                           borderRadius: BorderRadius.circular(20)),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          children: [
-                            TextFormField(
-                              controller: _nombre,
-                              decoration: InputDecoration(labelText: 'Nombre'),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Por favor, ingrese un nombre';
-                                }
-                                return null;
-                              },
-                            ),
-                            TextFormField(
-                              controller: _apellidos,
-                              decoration:
-                                  InputDecoration(labelText: 'Apellidos'),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Por favor, ingrese un apellido';
-                                }
-                                return null;
-                              },
-                            ),
-                            TextFormField(
-                              controller: _dni,
-                              decoration: InputDecoration(labelText: 'DNI'),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Por favor, ingrese un dni';
-                                }
-                                return null;
-                              },
-                            ),
-                            TextFormField(
-                              readOnly: true,
-                              controller:
-                                  _fechanacimiento, // Usa el controlador de texto
-                              onTap: () async {
-                                // Abre el selector de fechas cuando se hace clic en el campo
-                                DateTime? fechaSeleccionada =
-                                    await showDatePicker(
-                                  context: context,
-                                  initialDate: DateTime.now(),
-                                  firstDate: DateTime(1970),
-                                  lastDate: DateTime(2101),
-                                );
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(2),
+                            width: 250,
+                            decoration: BoxDecoration(
+                                color: const Color.fromARGB(255, 199, 209, 217),
+                                borderRadius: BorderRadius.circular(20)),
+                            child: Form(
+                              key: _formKey,
+                              child: Column(
+                                children: [
+                                  TextFormField(
+                                    controller: _nombre,
+                                    decoration:
+                                        InputDecoration(labelText: 'Nombre'),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Por favor, ingrese un nombre';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  TextFormField(
+                                    controller: _apellidos,
+                                    decoration:
+                                        InputDecoration(labelText: 'Apellidos'),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Por favor, ingrese un apellido';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  TextFormField(
+                                    controller: _dni,
+                                    decoration:
+                                        InputDecoration(labelText: 'DNI'),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Por favor, ingrese un dni';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  TextFormField(
+                                    readOnly: true,
+                                    controller:
+                                        _fechanacimiento, // Usa el controlador de texto
+                                    onTap: () async {
+                                      // Abre el selector de fechas cuando se hace clic en el campo
+                                      DateTime? fechaSeleccionada =
+                                          await showDatePicker(
+                                        context: context,
+                                        initialDate: DateTime.now(),
+                                        firstDate: DateTime(1970),
+                                        lastDate: DateTime(2101),
+                                      );
 
-                                if (fechaSeleccionada != null) {
-                                  // Actualiza el valor del campo de texto con la fecha seleccionada
-                                  _fechanacimiento.text =
-                                      "${fechaSeleccionada.day}/${fechaSeleccionada.month}/${fechaSeleccionada.year}";
-                                }
-                              },
-                              keyboardType: TextInputType.datetime,
-                              style: const TextStyle(
-                                //fontSize: largoActual * 0.024,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
+                                      if (fechaSeleccionada != null) {
+                                        // Actualiza el valor del campo de texto con la fecha seleccionada
+                                        _fechanacimiento.text =
+                                            "${fechaSeleccionada.day}/${fechaSeleccionada.month}/${fechaSeleccionada.year}";
+                                      }
+                                    },
+                                    keyboardType: TextInputType.datetime,
+                                    style: const TextStyle(
+                                      //fontSize: largoActual * 0.024,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
+                                    decoration: const InputDecoration(
+                                      labelText: 'Fecha de Nacimiento',
+                                      // hintText: 'Ingrese sus apellidos',
+                                      isDense: true,
+                                      labelStyle: TextStyle(
+                                        // fontSize: largoActual * 0.02,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color.fromARGB(255, 1, 55, 99),
+                                      ),
+                                      hintStyle: TextStyle(
+                                        //  fontSize: largoActual * 0.018,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ),
+                                  TextFormField(
+                                    controller: _usuario,
+                                    decoration:
+                                        InputDecoration(labelText: 'Usuario'),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Por favor, ingrese un usuario';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  TextFormField(
+                                    controller: _contrasena,
+                                    decoration: InputDecoration(
+                                        labelText: 'Contraseña'),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Por favor, ingrese una contraseña';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  TextFormField(
+                                    controller: _email,
+                                    decoration:
+                                        InputDecoration(labelText: 'E-mail'),
+                                  ),
+                                ],
                               ),
-                              decoration: const InputDecoration(
-                                labelText: 'Fecha de Nacimiento',
-                                // hintText: 'Ingrese sus apellidos',
-                                isDense: true,
-                                labelStyle: TextStyle(
-                                  // fontSize: largoActual * 0.02,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color.fromARGB(255, 1, 55, 99),
+                            ),
+                          ),
+                          Container(
+                            margin: const EdgeInsets.only(left: 10),
+                            width: 200,
+                            padding: const EdgeInsets.all(5),
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                color:
+                                    const Color.fromARGB(255, 188, 183, 183)),
+                            child: Column(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                      color:
+                                          const Color.fromARGB(255, 84, 83, 79),
+                                      borderRadius: BorderRadius.circular(20)),
+                                  child: Text(
+                                    "Creación Vehículos",
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold),
+                                  ),
                                 ),
-                                hintStyle: TextStyle(
-                                  //  fontSize: largoActual * 0.018,
-                                  color: Colors.grey,
+                                // FORM VEHICULO
+                                Container(
+                                  width: 180,
+                                  child: Form(
+                                      key: _formKey2,
+                                      child: Column(
+                                        children: [
+                                          TextFormField(
+                                            controller: _nombremodelo,
+                                            decoration: InputDecoration(
+                                                labelText: 'Nombre modelo'),
+                                          ),
+                                          TextFormField(
+                                            controller: _placa,
+                                            decoration: InputDecoration(
+                                                labelText: 'Placa'),
+                                          )
+                                        ],
+                                      )),
                                 ),
-                              ),
+                                // BOTON
+                                Container(
+                                  child: ElevatedButton(
+                                      onPressed: () async {
+                                        if (_formKey2.currentState!
+                                            .validate()) {
+                                          showDialog(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return const AlertDialog(
+                                                content: Row(
+                                                  children: [
+                                                    CircularProgressIndicator(
+                                                      backgroundColor:
+                                                          Colors.green,
+                                                    ),
+                                                    SizedBox(width: 20),
+                                                    Text("Cargando..."),
+                                                  ],
+                                                ),
+                                              );
+                                            },
+                                          );
+                                          await createVehiculo(
+                                              _nombremodelo.text,
+                                              _placa.text,
+                                              userProvider.user?.id);
+                                          Navigator.of(context).pop();
+
+                                          showDialog(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return const AlertDialog(
+                                                content: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    SizedBox(width: 20),
+                                                    Text(
+                                                      "Vehículo Creado!",
+                                                      style: TextStyle(
+                                                          color: Colors.blue,
+                                                          fontSize: 16),
+                                                    ),
+                                                    Icon(
+                                                      Icons.check,
+                                                      size: 30,
+                                                      color: Colors.green,
+                                                    )
+                                                  ],
+                                                ),
+                                              );
+                                            },
+                                          );
+                                          _nombremodelo.clear();
+                                          _placa.clear();
+                                          setState(() {
+                                            
+                                          });
+                                          await getVehiculo(userProvider.user?.id);
+                                        }
+                                      },
+                                      style: ButtonStyle(
+                                          backgroundColor:
+                                              MaterialStateProperty.all(
+                                                  Colors.blue)),
+                                      child: Text(
+                                        "Crear Vehículo",
+                                        style: TextStyle(color: Colors.white),
+                                      )),
+                                )
+                              ],
                             ),
-                            TextFormField(
-                              controller: _usuario,
-                              decoration: InputDecoration(labelText: 'Usuario'),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Por favor, ingrese un usuario';
-                                }
-                                return null;
-                              },
-                            ),
-                            TextFormField(
-                              controller: _contrasena,
-                              decoration:
-                                  InputDecoration(labelText: 'Contraseña'),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Por favor, ingrese una contraseña';
-                                }
-                                return null;
-                              },
-                            ),
-                            TextFormField(
-                              controller: _email,
-                              decoration: InputDecoration(labelText: 'E-mail'),
-                            ),
-                          ],
-                        ),
+                          )
+                        ],
                       ),
                     ),
                     Row(
@@ -519,7 +743,8 @@ class _CrudState extends State<Crud> {
                                       _fechanacimiento.text,
                                       _usuario.text,
                                       _contrasena.text,
-                                      _email.text);
+                                      _email.text,
+                                      userProvider.user?.id);
                                   Navigator.of(context).pop();
 
                                   if (status == 200) {
@@ -622,7 +847,7 @@ class _CrudState extends State<Crud> {
                                     );
                                   },
                                 );
-                                  print(_fechanacimiento.text);
+                                print(_fechanacimiento.text);
                                 try {
                                   await createConductor(
                                       _nombre.text,
@@ -631,7 +856,8 @@ class _CrudState extends State<Crud> {
                                       _fechanacimiento.text,
                                       _usuario.text,
                                       _contrasena.text,
-                                      _email.text);
+                                      _email.text,
+                                      userProvider.user?.id);
                                   Navigator.of(context).pop();
 
                                   if (status == 200) {
@@ -717,9 +943,10 @@ class _CrudState extends State<Crud> {
                   ],
                 ),
               ),
+              // EMPLEADO
               Container(
-                margin: const EdgeInsets.only(left: 20, top: 20, right: 20),
-                width: MediaQuery.of(context).size.width / 3.5,
+                margin: const EdgeInsets.only(left: 20, top: 20, right: 30),
+                width: MediaQuery.of(context).size.width / 6,
                 height: MediaQuery.of(context).size.height / 1.1,
                 decoration: BoxDecoration(
                     color: Colors.white,
@@ -741,10 +968,10 @@ class _CrudState extends State<Crud> {
                       ),
                     ),
                     Container(
-                      width: 500,
+                      width: 600,
                       height: MediaQuery.of(context).size.height / 1.5,
                       margin: const EdgeInsets.only(top: 20),
-                      padding: const EdgeInsets.all(9),
+                      padding: const EdgeInsets.all(5),
                       decoration: BoxDecoration(
                           color: Colors.grey,
                           borderRadius: BorderRadius.circular(20)),
@@ -753,8 +980,8 @@ class _CrudState extends State<Crud> {
                         itemBuilder: (context, index) {
                           return Container(
                             margin: const EdgeInsets.only(top: 20),
-                            height: MediaQuery.of(context).size.height / 6,
-                            width: 150,
+                            height: MediaQuery.of(context).size.height / 8,
+                            width: 350,
                             decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(20)),
@@ -769,26 +996,26 @@ class _CrudState extends State<Crud> {
                                     children: [
                                       Text(
                                         "ID USER: ${empleados[index].usuario_id}",
-                                        style: TextStyle(fontSize: 20),
+                                        style: TextStyle(fontSize: 10),
                                       ),
                                       Text(
                                         "Nombre: ${empleados[index].nombres}",
-                                        style: TextStyle(fontSize: 20),
+                                        style: TextStyle(fontSize: 10),
                                       ),
                                       Text(
                                         "Apellidos: ${empleados[index].apellidos}",
-                                        style: TextStyle(fontSize: 20),
+                                        style: TextStyle(fontSize: 10),
                                       ),
                                       Text(
                                         "usuario: ${empleados[index].nickname}",
-                                        style: TextStyle(fontSize: 20),
+                                        style: TextStyle(fontSize: 10),
                                       ),
                                     ],
                                   ),
                                 ),
                                 Container(
                                     height: 50,
-                                    width: 130,
+                                    width: 110,
                                     decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(50),
                                         color: Color.fromARGB(255, 86, 41, 94)),
@@ -811,7 +1038,7 @@ class _CrudState extends State<Crud> {
                                           Text(
                                             "Borrar",
                                             style: TextStyle(
-                                                fontSize: 18,
+                                                fontSize: 13,
                                                 color: Colors.white),
                                           ),
                                           Icon(Icons.delete)
@@ -827,9 +1054,10 @@ class _CrudState extends State<Crud> {
                   ],
                 ),
               ),
+              // CONDUCTORES
               Container(
-                margin: const EdgeInsets.only(left: 20, top: 20, right: 0),
-                width: MediaQuery.of(context).size.width / 3.5,
+                margin: const EdgeInsets.only(left: 20, top: 20, right: 30),
+                width: MediaQuery.of(context).size.width / 6,
                 height: MediaQuery.of(context).size.height / 1.1,
                 decoration: BoxDecoration(
                     color: Colors.white,
@@ -851,10 +1079,10 @@ class _CrudState extends State<Crud> {
                       ),
                     ),
                     Container(
-                      width: 500,
+                      width: 600,
                       height: MediaQuery.of(context).size.height / 1.5,
                       margin: const EdgeInsets.only(top: 20),
-                      padding: const EdgeInsets.all(9),
+                      padding: const EdgeInsets.all(5),
                       decoration: BoxDecoration(
                           color: Colors.grey,
                           borderRadius: BorderRadius.circular(20)),
@@ -863,7 +1091,7 @@ class _CrudState extends State<Crud> {
                         itemBuilder: (context, index) {
                           return Container(
                             margin: const EdgeInsets.only(top: 20),
-                            height: MediaQuery.of(context).size.height / 6,
+                            height: MediaQuery.of(context).size.height / 8,
                             width: 150,
                             decoration: BoxDecoration(
                                 color: Colors.white,
@@ -879,26 +1107,26 @@ class _CrudState extends State<Crud> {
                                     children: [
                                       Text(
                                         "ID usuario: ${conductores[index].usuario_id}",
-                                        style: TextStyle(fontSize: 20),
+                                        style: TextStyle(fontSize: 10),
                                       ),
                                       Text(
                                         "Nombres: ${conductores[index].nombres}",
-                                        style: TextStyle(fontSize: 20),
+                                        style: TextStyle(fontSize: 10),
                                       ),
                                       Text(
                                         "Apellidos: ${conductores[index].apellidos}",
-                                        style: TextStyle(fontSize: 20),
+                                        style: TextStyle(fontSize: 10),
                                       ),
                                       Text(
                                         "Usuario: ${conductores[index].nickname}",
-                                        style: TextStyle(fontSize: 20),
+                                        style: TextStyle(fontSize: 10),
                                       ),
                                     ],
                                   ),
                                 ),
                                 Container(
                                     height: 50,
-                                    width: 130,
+                                    width: 110,
                                     decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(50),
                                         color: Color.fromARGB(255, 86, 41, 94)),
@@ -921,7 +1149,116 @@ class _CrudState extends State<Crud> {
                                           Text(
                                             "Borrar",
                                             style: TextStyle(
-                                                fontSize: 18,
+                                                fontSize: 13,
+                                                color: Colors.white),
+                                          ),
+                                          Icon(Icons.delete)
+                                        ],
+                                      ),
+                                    ))
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // VEHICULOS
+              Container(
+                margin: const EdgeInsets.only(left: 20, top: 20, right: 0),
+                width: MediaQuery.of(context).size.width / 6,
+                height: MediaQuery.of(context).size.height / 1.1,
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20)),
+                child: Column(
+                  children: [
+                    Container(
+                      width: MediaQuery.of(context).size.width / 5,
+                      padding: const EdgeInsets.all(20),
+                      margin: const EdgeInsets.only(top: 20),
+                      decoration: BoxDecoration(
+                          color: Colors.amber,
+                          borderRadius: BorderRadius.circular(20)),
+                      child: Center(
+                        child: Text(
+                          "Vehiculos",
+                          style: TextStyle(fontSize: 28, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      width: 600,
+                      height: MediaQuery.of(context).size.height / 1.5,
+                      margin: const EdgeInsets.only(top: 20),
+                      padding: const EdgeInsets.all(5),
+                      decoration: BoxDecoration(
+                          color: Colors.grey,
+                          borderRadius: BorderRadius.circular(20)),
+                      child: ListView.builder(
+                        itemCount: vehiculos.length,
+                        itemBuilder: (context, index) {
+                          return Container(
+                            margin: const EdgeInsets.only(top: 20),
+                            height: MediaQuery.of(context).size.height / 8,
+                            width: 350,
+                            decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20)),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(
+                                  //color: Colors.grey,
+                                  margin: const EdgeInsets.only(left: 10),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "ID vehiculo: ${vehiculos[index].id}",
+                                        style: TextStyle(fontSize: 10),
+                                      ),
+                                      Text(
+                                        "NombreModelo: ${vehiculos[index].nombre_modelo}",
+                                        style: TextStyle(fontSize: 10),
+                                      ),
+                                      Text(
+                                        "Placa: ${vehiculos[index].placa}",
+                                        style: TextStyle(fontSize: 10),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                    height: 50,
+                                    width: 110,
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(20),
+                                        color: Color.fromARGB(255, 86, 41, 94)),
+                                    margin: const EdgeInsets.only(right: 10),
+                                    child: ElevatedButton(
+                                      onPressed: () async {
+                                        await deleteVehiculo(
+                                            vehiculos[index].id);
+                                        setState(() {});
+                                        await getVehiculo(
+                                            userProvider.user?.id);
+                                      },
+                                      style: ButtonStyle(
+                                          backgroundColor:
+                                              MaterialStateProperty.all(
+                                                  Colors.amber)),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            "Borrar",
+                                            style: TextStyle(
+                                                fontSize: 13,
                                                 color: Colors.white),
                                           ),
                                           Icon(Icons.delete)

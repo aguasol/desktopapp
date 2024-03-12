@@ -6,6 +6,7 @@ import 'package:desktopapp/components/provider/ruta_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -251,22 +252,38 @@ class _Armado2State extends State<Armado2> {
 
   Future<dynamic> getVehiculos() async {
     SharedPreferences empleadoShare = await SharedPreferences.getInstance();
-    var res = await http.get(
-        Uri.parse(
-            api + apiVehiculos + empleadoShare.getInt('empleadoID').toString()),
-        headers: {"Content-type": "application/json"});
-    var data = json.decode(res.body);
-    List<Vehiculo> tempVehiculo = data.map<Vehiculo>((item) {
-      return Vehiculo(
-        id: item['id'],
-        nombre_modelo: item['nombre_modelo'],
-        placa: item['placa'],
-        administrador_id: item['administrador_id'],
-      );
-    }).toList();
-    setState(() {
-      vehiculos = tempVehiculo;
-    });
+    try {
+      print("...............................URL DE GETVEHICULOS");
+      print(api +
+              apiVehiculos +
+              empleadoShare.getInt('empleadoID').toString());
+      var res = await http.get(
+          Uri.parse(api +
+              apiVehiculos +
+              empleadoShare.getInt('empleadoID').toString()),
+          headers: {"Content-type": "application/json"});
+          print("........................................RES BODY");
+          print(res.body);
+      var data = json.decode(res.body);
+      print("......................data vehiculos x empelado");
+      print(data);
+      if(data is List){
+        List<Vehiculo> tempVehiculo = (data as List).map<Vehiculo>((item) {
+        return Vehiculo(
+          id: item['id'],
+          nombre_modelo: item['nombre_modelo'],
+          placa: item['placa'],
+          administrador_id: item['administrador_id'],
+        );
+      }).toList();
+      setState(() {
+        vehiculos = tempVehiculo;
+      });
+      }
+      
+    } catch (e) {
+      throw Exception("$e");
+    }
   }
 
   Future<dynamic> getEmpleadoPedido(int empleadoid) async {
@@ -339,16 +356,25 @@ class _Armado2State extends State<Armado2> {
   /// AQUI AGREGO EL CARRITO PUNNNNN
   Future<dynamic> createRuta(
       empleado_id, conductor_id, vehiculo_id, distancia, tiempo) async {
-    await http.post(Uri.parse(api + apiRutaCrear),
-        headers: {"Content-type": "application/json"},
-        body: jsonEncode({
-          "conductor_id": conductor_id,
-          "vehiculo_i": vehiculo_id,
-          "empleado_id": empleado_id,
-          "distancia_km": distancia,
-          "tiempo_ruta": tiempo
-        }));
-    print("Ruta creada");
+    try {
+      print("Create ruta");
+      DateTime horaactual = DateTime.now();
+      String formateDateTime =
+          DateFormat('yyyy-MM-dd HH:mm:ss').format(horaactual);
+      await http.post(Uri.parse(api + apiRutaCrear),
+          headers: {"Content-type": "application/json"},
+          body: jsonEncode({
+            "conductor_id": conductor_id,
+            "vehiculo_i": vehiculo_id,
+            "empleado_id": empleado_id,
+            "distancia_km": distancia,
+            "tiempo_ruta": tiempo,
+            "fecha_creacion": formateDateTime
+          }));
+      print("Ruta creada");
+    } catch (e) {
+      throw Exception("$e");
+    }
   }
 
   // LAST RUTA BY EMPRLEADOID
@@ -1633,7 +1659,8 @@ class _Armado2State extends State<Armado2> {
                       BoxDecoration(borderRadius: BorderRadius.circular(100)),
                   child: ElevatedButton(
                     onPressed: (pedidoSeleccionado.isNotEmpty &&
-                            obtenerConductor.isNotEmpty && obtenerVehiculo.isNotEmpty)
+                            obtenerConductor.isNotEmpty &&
+                            obtenerVehiculo.isNotEmpty)
                         ? () async {
                             showDialog<String>(
                               context: context,
@@ -1716,9 +1743,12 @@ class _Armado2State extends State<Armado2> {
                                                   false;
                                             });
                                           }
-                                          for(var i=0;i<obtenerVehiculo.length;i++){
+                                          for (var i = 0;
+                                              i < obtenerVehiculo.length;
+                                              i++) {
                                             setState(() {
-                                              obtenerVehiculo[i].seleccionado=false;
+                                              obtenerVehiculo[i].seleccionado =
+                                                  false;
                                             });
                                           }
 
@@ -1734,7 +1764,9 @@ class _Armado2State extends State<Armado2> {
                                               ?.setState(() {});
 
                                           Navigator.pop(context, 'CONFIRMAR');
-                                          setState(() {getPedidos();});
+                                          setState(() {
+                                            getPedidos();
+                                          });
                                         },
                                         style: ButtonStyle(
                                             backgroundColor:

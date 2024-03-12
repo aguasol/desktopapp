@@ -196,7 +196,7 @@ class _UpdateState extends State<Update> {
                           ? Colors.grey.withOpacity(0.8)
                           : iterarPedido[i].estado == 'truncado'
                               ? Colors.red.withOpacity(0.75)
-                              : Colors.black,
+                              : Colors.black.withOpacity(0.6),
                   border: Border.all(width: 2.5, color: Colors.white)),
               child: Center(
                   child: Text(
@@ -1052,6 +1052,41 @@ class _UpdateState extends State<Update> {
                         })),
               ),
 
+              // FORMULARIO
+              Positioned(
+                top: 350,
+                left: 40,
+                child: Container(
+                  height: 200,
+                  width: 150,
+                  decoration: BoxDecoration(
+                    color: Colors.amber
+                  ),
+                  child: Form(child:
+                  Column(
+                    children: [
+                      Text("Stock Unidades"),
+                      TextFormField(
+                        decoration: InputDecoration(
+                          labelText: 'Stock '
+                        ),
+                      ),
+                      TextFormField(
+                        decoration: InputDecoration(
+                          labelText: 'Stock '
+                        ),
+                      ),
+                      TextFormField(
+                        decoration: InputDecoration(
+                          labelText: 'Stock '
+                        ),
+                      ),
+
+                    ],
+                  )),
+                ),
+              ),
+
               // EXPRESS
               Positioned(
                 right: 10,
@@ -1264,7 +1299,7 @@ class _UpdateState extends State<Update> {
                                                   : hoypedidos[index].estado ==
                                                           'en proceso'
                                                       ? Colors.amber
-                                                      : Colors.black,
+                                                      : Colors.black.withOpacity(0.8),
                                               fontWeight: FontWeight.bold,
                                             )),
                                       ],
