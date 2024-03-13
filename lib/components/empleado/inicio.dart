@@ -477,8 +477,8 @@ class _InicioState extends State<Inicio> {
             "telefono": telefono,
             "email": email ?? "",
             "distrito": distrito,
-            "latitud": latitud,
-            "longitud": longitud,
+            "latitud": latitud ?? 0.0,
+            "longitud": longitud ?? 0.0,
             "ruc": ruc ?? ""
           }));
     } catch (e) {
