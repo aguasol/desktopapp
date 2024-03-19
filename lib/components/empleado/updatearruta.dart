@@ -15,6 +15,43 @@ import 'dart:convert';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:lottie/lottie.dart' as lottie;
 
+class VehiculoProducto {
+  int id;
+  int producto_id;
+  int vehiculo_id;
+  int stock;
+  int stock_movil_conductor;
+
+  VehiculoProducto(
+      {required this.id,
+      required this.producto_id,
+      required this.vehiculo_id,
+      this.stock = 0,
+      this.stock_movil_conductor = 0});
+}
+
+class Producto {
+  int id;
+  String nombre;
+  String descripcion;
+  String foto;
+  TextEditingController texto;
+
+  Producto({
+    required this.id,
+    required this.nombre,
+    required this.descripcion,
+    required this.foto,
+    required TextEditingController? texto,
+  }) : texto = texto ??
+            TextEditingController(); // Si no se proporciona un TextEditingController, se crea uno nuevo
+
+  // Método para liberar los recursos del controlador cuando ya no se necesite el producto
+  void dispose() {
+    texto.dispose();
+  }
+}
+
 // AGENDADOS
 class Pedido {
   final int id;
@@ -129,6 +166,8 @@ class _UpdateState extends State<Update> {
   String conductoresRuta = '/api/conductor_ruta';
   String pedidosConductor = '/api/conductorPedidos/';
   String updatePedidoRuta = '/api/pedidoruta/';
+  String vehiculoProductoStock = '/api/vehiculo_producto_stock/';
+  String vehiculoProductoCond = '/api/vp_conductor/';
 
   List<Conductor> obtenerConductor = [];
   int conductorid = 0;
@@ -139,6 +178,32 @@ class _UpdateState extends State<Update> {
 
   // TEXTCONTROLLER
   TextEditingController _ruta = TextEditingController();
+
+  // FORMU
+  TextEditingController _recarga = TextEditingController();
+  TextEditingController _bidon = TextEditingController();
+  TextEditingController _siete = TextEditingController();
+  TextEditingController _setecientos = TextEditingController();
+  TextEditingController _tres = TextEditingController();
+  List<TextEditingController> controladores = [];
+
+  List<VehiculoProducto> vehiculoProductosConductor = [];
+
+  // VARIABLES PRODUCTOS DEL CONDUCTOR
+  int recarga = 0;
+  int bidon = 0;
+  int siete = 0;
+  int tres = 0;
+  int vacio = 0;
+  int setecientos = 0;
+
+  // VARIABLES STOCK DE CONDUCTOR
+  int stock1Recarga = 0; 
+  int stock2bidon = 0;
+  int stock3siete = 0;
+  int stock4tres = 0;
+  int stock5vacio = 0;
+  int stock6setecientos = 0;
 
   @override
   void initState() {
@@ -742,6 +807,59 @@ class _UpdateState extends State<Update> {
     }
   }
 
+ 
+  Future<dynamic> updateStocK(int conductorid, int recarga, int bidon,
+      int siete, int tres, int setecientos) async {
+    try {
+      await http.put(Uri.parse(api + vehiculoProductoStock + conductorid.toString()),
+          headers: {"Content-type": "application/json"},
+          body: jsonEncode({
+            "stock1": recarga,
+            "stock2": bidon,
+            "stock3": siete,
+            "stock4": tres,
+            "stock5": setecientos
+          }));
+      print("datos.........");
+      print(recarga);
+      print(bidon);
+      print(siete);
+      print(tres);
+      print(setecientos);
+    } catch (e) {
+      throw Exception("$e");
+    }
+  }
+
+  Future<dynamic> getVehiculoProducto(int conductorid) async {
+    var res = await http.get(
+        Uri.parse(api + vehiculoProductoCond + conductorid.toString()),
+        headers: {"Content-type": "application/json"});
+    try {
+      if (res.statusCode == 200) {
+        var data = json.decode(res.body);
+        List<VehiculoProducto> tempVehiculoProducto =
+            data.map<VehiculoProducto>((data) {
+          return VehiculoProducto(
+              id: data['id'],
+              producto_id: data['producto_id'],
+              vehiculo_id: data['vehiculo_id'],
+              stock: data['stock'],
+              stock_movil_conductor: data['stock_movil_conductor']);
+        }).toList();
+
+        return tempVehiculoProducto;
+        /*setState(() {
+          vehiculoProductosConductor = tempVehiculoProducto;
+        });*/
+        print("----VEHICULO PRODUCTOR");
+        print(vehiculoProductosConductor);
+      }
+    } catch (e) {
+      throw Exception("$e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -908,9 +1026,9 @@ class _UpdateState extends State<Update> {
                           return Container(
                               margin: const EdgeInsets.only(top: 10, right: 20),
                               padding: const EdgeInsets.all(5),
-                              height: 200,
+                              height: 250,
                               decoration: BoxDecoration(
-                                  //color: Colors.teal.withOpacity(0.9),
+                                  // color: Colors.teal.withOpacity(0.9),
                                   borderRadius: BorderRadius.circular(20)),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -962,6 +1080,277 @@ class _UpdateState extends State<Update> {
                                               fontWeight: FontWeight.bold,
                                               fontSize: 12),
                                         ),
+                                      ),
+                                      Container(
+                                        height: 80,
+                                        width: 80,
+                                        decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(50)),
+                                        child: ElevatedButton(
+                                            onPressed: () {
+                                              print("stockeando...");
+                                              showModalBottomSheet(
+                                                  context: context,
+                                                  builder:
+                                                      (BuildContext context) {
+                                                    return Container(
+                                                      margin:
+                                                          const EdgeInsets.all(
+                                                              20),
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              6),
+                                                      height: 450,
+                                                      decoration: BoxDecoration(
+                                                          color: Color.fromARGB(
+                                                              255,
+                                                              142,
+                                                              85,
+                                                              104),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      20)),
+                                                      width:
+                                                          MediaQuery.of(context)
+                                                                  .size
+                                                                  .width /
+                                                              3,
+                                                      child: Column(
+                                                        children: [
+                                                          Container(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .all(15),
+                                                            height: MediaQuery.of(
+                                                                        context)
+                                                                    .size
+                                                                    .height /
+                                                                2.5,
+                                                            width: 180,
+                                                            decoration: BoxDecoration(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            20),
+                                                                color: Colors
+                                                                    .amber),
+                                                            child: Form(
+                                                                child: Column(
+                                                              children: [
+                                                                Text(
+                                                                  "Stock Móvil",
+                                                                  style:
+                                                                      TextStyle(
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                  ),
+                                                                ),
+                                                                TextFormField(
+                                                                  controller:
+                                                                      _recarga,
+                                                                  decoration:
+                                                                      InputDecoration(
+                                                                    labelText:
+                                                                        'Recarga: ',
+                                                                    labelStyle: TextStyle(
+                                                                        fontSize:
+                                                                            11),
+                                                                  ),
+                                                                ),
+                                                                TextFormField(
+                                                                  controller:
+                                                                      _bidon,
+                                                                  decoration:
+                                                                      InputDecoration(
+                                                                    labelText:
+                                                                        'Bidón 20L ',
+                                                                    labelStyle: TextStyle(
+                                                                        fontSize:
+                                                                            11),
+                                                                  ),
+                                                                ),
+                                                                TextFormField(
+                                                                  controller:
+                                                                      _siete,
+                                                                  decoration:
+                                                                      InputDecoration(
+                                                                    labelText:
+                                                                        'Botella 7L ',
+                                                                    labelStyle: TextStyle(
+                                                                        fontSize:
+                                                                            11),
+                                                                  ),
+                                                                ),
+                                                                TextFormField(
+                                                                  controller:
+                                                                      _tres,
+                                                                  decoration:
+                                                                      InputDecoration(
+                                                                    labelText:
+                                                                        'Botella 3L ',
+                                                                    labelStyle: TextStyle(
+                                                                        fontSize:
+                                                                            11),
+                                                                  ),
+                                                                ),
+                                                                TextFormField(
+                                                                  controller:
+                                                                      _setecientos,
+                                                                  decoration:
+                                                                      InputDecoration(
+                                                                    labelText:
+                                                                        'Botella 700mL ',
+                                                                    labelStyle: TextStyle(
+                                                                        fontSize:
+                                                                            11),
+                                                                  ),
+                                                                ),
+                                                                Container(
+                                                                  margin:
+                                                                      const EdgeInsets
+                                                                          .only(
+                                                                          top:
+                                                                              20),
+                                                                  child: ElevatedButton(
+                                                                      onPressed: () async {
+                                                                        List<VehiculoProducto>
+                                                                            vpConductor =
+                                                                            await getVehiculoProducto(conductorget[index1].id);
+
+                                                                        // variables
+                                                                        print(
+                                                                            "vpconductor");
+                                                                        print(
+                                                                            vpConductor);
+                                                                        print(vpConductor
+                                                                            .length);
+
+                                                                        // ASIGNACIÓN DE VARIABLES DE STOCK CONDUCTOR
+                                                                        for (var i =
+                                                                                0;
+                                                                            i < vpConductor.length;
+                                                                            i++) {
+                                                                          if (vpConductor[i].producto_id ==
+                                                                              1) {
+                                                                            print("Recarga");
+                                                                            setState(() {
+                                                                              recarga =
+                                                                                vpConductor[i].stock_movil_conductor;
+                                                                              stock1Recarga = vpConductor[i].stock; 
+                                                                            });
+                                                                            
+                                                                          } else if (vpConductor[i].producto_id ==
+                                                                              2) {
+                                                                            print("Bidon");
+                                                                            setState(() {
+                                                                              bidon =
+                                                                                vpConductor[i].stock_movil_conductor;
+                                                                                stock2bidon = vpConductor[i].stock;
+                                                                            });
+                                                                            
+                                                                          } else if (vpConductor[i].producto_id ==
+                                                                              3) {
+                                                                            print("7 LITROS");
+                                                                            setState(() {
+                                                                              siete =
+                                                                                vpConductor[i].stock_movil_conductor;
+                                                                                stock3siete = vpConductor[i].stock;
+                                                                            });
+                                                                            
+                                                                          } else if (vpConductor[i].producto_id ==
+                                                                              4) {
+                                                                            print("3 LITROS");
+                                                                            setState(() {
+
+                                                                               tres =
+                                                                                vpConductor[i].stock_movil_conductor;
+                                                                                stock4tres = vpConductor[i].stock;
+
+                                                                            });
+                                                                           
+                                                                          } else if (vpConductor[i].producto_id ==
+                                                                              5) {
+                                                                            print("700 ml");
+                                                                            setState(() {
+                                                                                setecientos =
+                                                                                vpConductor[i].stock_movil_conductor;
+                                                                                stock6setecientos = vpConductor[i].stock;
+                                                                            });
+                                                                          
+                                                                          } else {
+                                                                            print("Vacio");
+                                                                            setState(() {
+                                                                              vacio =
+                                                                                vpConductor[i].stock_movil_conductor;
+                                                                                stock5vacio = vpConductor[i].stock;
+                                                                            });
+                                                                            
+                                                                          }
+                                                                        }
+                                                                        print(
+                                                                            "productos stock conductor");
+                                                                        print(
+                                                                            "$recarga $bidon $siete $tres $setecientos $vacio");
+                                                                        if(int.parse(_recarga.text)==recarga &&
+                                                                        int.parse(_bidon.text)==bidon && 
+                                                                        int.parse(_siete.text)==siete &&
+                                                                        int.parse(_tres.text)==tres &&
+                                                                        int.parse(_setecientos.text)==setecientos){
+
+                                                                          // RESIDUO MÁS EL NUEVO DEL FORMULARIO O CONDUCTOR
+
+                                                                           stock1Recarga = stock1Recarga + recarga;
+                                                                           stock2bidon = stock2bidon + bidon;
+                                                                           stock3siete = stock3siete + siete;
+                                                                           stock4tres = stock4tres + tres;
+                                                                           stock6setecientos = stock6setecientos + setecientos;
+
+                                                                           // LUEGO ACTUALIZAMOS ESE VALOR EN LA COLUMNA STOCK
+
+                                                                           await updateStocK(
+                                                                                  conductorget[index1].id,
+                                                                                  stock1Recarga,
+                                                                                  stock2bidon,
+                                                                                  stock3siete,
+                                                                                  stock4tres,
+                                                                                  stock6setecientos);
+                                                                        }
+                                                                        else{
+                                                                          
+                                                                        }
+                                                                       
+                                                                      },
+                                                                      style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.teal)),
+                                                                      child: Text(
+                                                                        "Actualizar Stock",
+                                                                        style: TextStyle(
+                                                                            fontSize:
+                                                                                11,
+                                                                            color:
+                                                                                Colors.white),
+                                                                      )),
+                                                                )
+                                                              ],
+                                                            )),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    );
+                                                  });
+                                            },
+                                            style: ButtonStyle(
+                                                backgroundColor:
+                                                    MaterialStateProperty.all(
+                                                        Colors.pink)),
+                                            child: Text(
+                                              "Stock",
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 12),
+                                            )),
                                       ),
                                     ],
                                   ),
@@ -1053,39 +1442,6 @@ class _UpdateState extends State<Update> {
               ),
 
               // FORMULARIO
-              Positioned(
-                top: 350,
-                left: 40,
-                child: Container(
-                  height: 200,
-                  width: 150,
-                  decoration: BoxDecoration(
-                    color: Colors.amber
-                  ),
-                  child: Form(child:
-                  Column(
-                    children: [
-                      Text("Stock Unidades"),
-                      TextFormField(
-                        decoration: InputDecoration(
-                          labelText: 'Stock '
-                        ),
-                      ),
-                      TextFormField(
-                        decoration: InputDecoration(
-                          labelText: 'Stock '
-                        ),
-                      ),
-                      TextFormField(
-                        decoration: InputDecoration(
-                          labelText: 'Stock '
-                        ),
-                      ),
-
-                    ],
-                  )),
-                ),
-              ),
 
               // EXPRESS
               Positioned(
@@ -1299,7 +1655,8 @@ class _UpdateState extends State<Update> {
                                                   : hoypedidos[index].estado ==
                                                           'en proceso'
                                                       ? Colors.amber
-                                                      : Colors.black.withOpacity(0.8),
+                                                      : Colors.black
+                                                          .withOpacity(0.8),
                                               fontWeight: FontWeight.bold,
                                             )),
                                       ],
@@ -1342,9 +1699,10 @@ class _UpdateState extends State<Update> {
                 ),
               ),
 
+              // ASIGNAR RUTA
               Positioned(
-                top: 80,
-                left: 10,
+                top: 10,
+                left: 250,
                 child: Container(
                   padding: const EdgeInsets.all(20),
                   height: 250,
@@ -1439,7 +1797,8 @@ class _UpdateState extends State<Update> {
                                                 _ruta.text = '';
                                                 pedidoSeleccionado = [];
                                               });
-                                              Navigator.pop(context, 'CANCELAR');
+                                              Navigator.pop(
+                                                  context, 'CANCELAR');
                                             },
                                             style: ButtonStyle(
                                                 backgroundColor:
@@ -1499,15 +1858,11 @@ class _UpdateState extends State<Update> {
                                                       // ACTUALIZAMOS LA VISTA
                                                       pedidoSeleccionado = [];
                                                     });
-                                                    setState(() {
-                                                      
-                                                    });
-                                                    Navigator.pop(context,'SI');
-                                                   
-                                                    
-                                                    setState(() {
-                                                      
-                                                    });
+                                                    setState(() {});
+                                                    Navigator.pop(
+                                                        context, 'SI');
+
+                                                    setState(() {});
                                                   }
                                                 : null,
                                             child: const Text('SI'),

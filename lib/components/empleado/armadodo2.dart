@@ -231,10 +231,10 @@ class _Armado2State extends State<Armado2> {
   List<Marker> normalmarker = [];
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
 
- /* final _winNotifyPlugin = WindowsNotification(
+  final _winNotifyPlugin = WindowsNotification(
     applicationId:
         r"{D65231B0-B2F1-4857-A4CE-A8E7C6EA7D27}\WindowsPowerShell\v1.0\powershell.exe",
-  );*/
+  );
   Map<LatLng, Color> coloreSeleccionados = {};
   int informe = 0;
   String nombre = '';
@@ -356,7 +356,12 @@ class _Armado2State extends State<Armado2> {
   Future<dynamic> createRuta(
       empleado_id, conductor_id, vehiculo_id, distancia, tiempo) async {
     try {
-      print("Create ruta");
+       print("Create ruta....");
+      print("conductor ID");
+      print(conductor_id);
+      print("vehiculo_id");
+      print(vehiculo_id);
+     
       DateTime horaactual = DateTime.now();
       String formateDateTime =
           DateFormat('yyyy-MM-dd HH:mm:ss').format(horaactual);
@@ -364,7 +369,7 @@ class _Armado2State extends State<Armado2> {
           headers: {"Content-type": "application/json"},
           body: jsonEncode({
             "conductor_id": conductor_id,
-            "vehiculo_i": vehiculo_id,
+            "vehiculo_id": vehiculo_id,
             "empleado_id": empleado_id,
             "distancia_km": distancia,
             "tiempo_ruta": tiempo,
@@ -520,6 +525,8 @@ class _Armado2State extends State<Armado2> {
 
   Future<dynamic> getPedidos() async {
     try {
+      print("---------dentro ..........................get pdeidos");
+      print(apipedidos);
       var res = await http.get(Uri.parse(api + apipedidos),
           headers: {"Content-type": "application/json"});
       if (res.statusCode == 200) {
@@ -759,13 +766,13 @@ class _Armado2State extends State<Armado2> {
       print('Conexión desconectada: EMPLEADO');
     });
 
-    /*socket.on('nuevoPedido', (data) {
+    socket.on('nuevoPedido', (data) {
       if (data['tipo'] == 'express') {
-        _showNotification(data['tipo']);
+       // _showNotification(data['tipo']);
       } else {
-        _showNotification(data['tipo']);
+      //  _showNotification(data['tipo']);
       }
-    });*/
+    });
 
     socket.onConnectError((error) {
       print("error de conexion $error");
@@ -793,7 +800,7 @@ class _Armado2State extends State<Armado2> {
       print(data);
     });
   }
- /*void _showNotification(String tipo) async {
+ void _showNotification(String tipo) async {
     if (tipo == 'express') {
       String imagePath = await getImageBytes('lib/imagenes/amberfinal.png');
       NotificationMessage message = NotificationMessage.fromPluginTemplate(
@@ -820,14 +827,8 @@ class _Armado2State extends State<Armado2> {
       );
       _winNotifyPlugin.showNotificationPluginTemplate(message);
 
-      // Ejecutar en el hilo principal de Flutter
-      MethodChannel('tu_canal').invokeMethod('mostrarNotificacion', {
-        'title': message.title,
-        'body': message.body,
-        'largeImage': message.largeImage,
-      });
-    }*/
-  
+    }
+ }
 
 
   @override
@@ -1670,9 +1671,9 @@ class _Armado2State extends State<Armado2> {
                                           _listKey.currentState
                                               ?.setState(() {});
 
-                                          Navigator.pop(context, 'CONFIRMAR');
+                                          Navigator.pop(context);
                                           setState(() {
-                                            getPedidos();
+                                           // getPedidos();
                                           });
                                         },
                                         style: ButtonStyle(

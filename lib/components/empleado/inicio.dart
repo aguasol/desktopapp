@@ -2161,6 +2161,7 @@ class _InicioState extends State<Inicio> {
                                                               await crearClienteNRmPedidoyDetallePedido(
                                                                   userProvider.user?.id,
                                                                   tipo);
+                                                                  
                                                             }
                                                           : null,
                                                   child: const Text('SI'),
