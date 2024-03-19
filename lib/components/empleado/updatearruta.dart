@@ -1354,7 +1354,7 @@ class _UpdateState extends State<Update> {
                                                                               stock4tres,
                                                                               stock6setecientos);
                                                                         } else {
-
+                                                                          
                                                                         }
                                                                       },
                                                                       style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.teal)),
