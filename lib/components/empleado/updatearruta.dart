@@ -30,6 +30,18 @@ class VehiculoProducto {
       this.stock_movil_conductor = 0});
 }
 
+class ZonaProducto {
+  int id;
+  int zonatrabajoid;
+  int productoid;
+  int stockpadre;
+  ZonaProducto(
+      {required this.id,
+      required this.zonatrabajoid,
+      required this.productoid,
+      required this.stockpadre});
+}
+
 class Producto {
   int id;
   String nombre;
@@ -198,7 +210,7 @@ class _UpdateState extends State<Update> {
   int setecientos = 0;
 
   // VARIABLES STOCK DE CONDUCTOR
-  int stock1Recarga = 0; 
+  int stock1Recarga = 0;
   int stock2bidon = 0;
   int stock3siete = 0;
   int stock4tres = 0;
@@ -807,11 +819,11 @@ class _UpdateState extends State<Update> {
     }
   }
 
- 
   Future<dynamic> updateStocK(int conductorid, int recarga, int bidon,
       int siete, int tres, int setecientos) async {
     try {
-      await http.put(Uri.parse(api + vehiculoProductoStock + conductorid.toString()),
+      await http.put(
+          Uri.parse(api + vehiculoProductoStock + conductorid.toString()),
           headers: {"Content-type": "application/json"},
           body: jsonEncode({
             "stock1": recarga,
@@ -854,6 +866,36 @@ class _UpdateState extends State<Update> {
         });*/
         print("----VEHICULO PRODUCTOR");
         print(vehiculoProductosConductor);
+      }
+    } catch (e) {
+      throw Exception("$e");
+    }
+  }
+
+  
+  // --- = ) SONRIEE....AQUIII JEJE LE CAMBIAS LA URI Q QUIERAS
+  Future<dynamic> getZonaProducto(int empleadoid) async {
+
+//AQUI
+    var res = await http
+        .get(Uri.parse(api), headers: {"Content-type": "application/json"});
+    try {
+      if (res.statusCode == 200) {
+        var data = json.decode(res.body);
+
+        List<ZonaProducto> tempZonaProducto = data.map<ZonaProducto>((data) {
+          return ZonaProducto(
+              id: data['id'],
+              zonatrabajoid: data['zonatrabajoid'],
+              productoid: data['productoid'],
+              stockpadre: data['stockpadre']);
+        }).toList();
+        setState(() {
+          // quiza necistas una lista
+          //   algo =  tempZonaProducto;
+        });
+        // o si no trabajar con la temporal directamente
+         // return tempZonaProducto;
       }
     } catch (e) {
       throw Exception("$e");
@@ -1237,91 +1279,83 @@ class _UpdateState extends State<Update> {
                                                                               1) {
                                                                             print("Recarga");
                                                                             setState(() {
-                                                                              recarga =
-                                                                                vpConductor[i].stock_movil_conductor;
-                                                                              stock1Recarga = vpConductor[i].stock; 
+                                                                              recarga = vpConductor[i].stock_movil_conductor;
+                                                                              stock1Recarga = vpConductor[i].stock;
                                                                             });
-                                                                            
                                                                           } else if (vpConductor[i].producto_id ==
                                                                               2) {
                                                                             print("Bidon");
                                                                             setState(() {
-                                                                              bidon =
-                                                                                vpConductor[i].stock_movil_conductor;
-                                                                                stock2bidon = vpConductor[i].stock;
+                                                                              bidon = vpConductor[i].stock_movil_conductor;
+                                                                              stock2bidon = vpConductor[i].stock;
                                                                             });
-                                                                            
                                                                           } else if (vpConductor[i].producto_id ==
                                                                               3) {
                                                                             print("7 LITROS");
                                                                             setState(() {
-                                                                              siete =
-                                                                                vpConductor[i].stock_movil_conductor;
-                                                                                stock3siete = vpConductor[i].stock;
+                                                                              siete = vpConductor[i].stock_movil_conductor;
+                                                                              stock3siete = vpConductor[i].stock;
                                                                             });
-                                                                            
                                                                           } else if (vpConductor[i].producto_id ==
                                                                               4) {
                                                                             print("3 LITROS");
                                                                             setState(() {
-
-                                                                               tres =
-                                                                                vpConductor[i].stock_movil_conductor;
-                                                                                stock4tres = vpConductor[i].stock;
-
+                                                                              tres = vpConductor[i].stock_movil_conductor;
+                                                                              stock4tres = vpConductor[i].stock;
                                                                             });
-                                                                           
                                                                           } else if (vpConductor[i].producto_id ==
                                                                               5) {
                                                                             print("700 ml");
                                                                             setState(() {
-                                                                                setecientos =
-                                                                                vpConductor[i].stock_movil_conductor;
-                                                                                stock6setecientos = vpConductor[i].stock;
+                                                                              setecientos = vpConductor[i].stock_movil_conductor;
+                                                                              stock6setecientos = vpConductor[i].stock;
                                                                             });
-                                                                          
                                                                           } else {
                                                                             print("Vacio");
                                                                             setState(() {
-                                                                              vacio =
-                                                                                vpConductor[i].stock_movil_conductor;
-                                                                                stock5vacio = vpConductor[i].stock;
+                                                                              vacio = vpConductor[i].stock_movil_conductor;
+                                                                              stock5vacio = vpConductor[i].stock;
                                                                             });
-                                                                            
                                                                           }
                                                                         }
                                                                         print(
                                                                             "productos stock conductor");
                                                                         print(
                                                                             "$recarga $bidon $siete $tres $setecientos $vacio");
-                                                                        if(int.parse(_recarga.text)==recarga &&
-                                                                        int.parse(_bidon.text)==bidon && 
-                                                                        int.parse(_siete.text)==siete &&
-                                                                        int.parse(_tres.text)==tres &&
-                                                                        int.parse(_setecientos.text)==setecientos){
-
+                                                                        if (int.parse(_recarga.text) == recarga &&
+                                                                            int.parse(_bidon.text) ==
+                                                                                bidon &&
+                                                                            int.parse(_siete.text) ==
+                                                                                siete &&
+                                                                            int.parse(_tres.text) ==
+                                                                                tres &&
+                                                                            int.parse(_setecientos.text) ==
+                                                                                setecientos) {
                                                                           // RESIDUO MÁS EL NUEVO DEL FORMULARIO O CONDUCTOR
 
-                                                                           stock1Recarga = stock1Recarga + recarga;
-                                                                           stock2bidon = stock2bidon + bidon;
-                                                                           stock3siete = stock3siete + siete;
-                                                                           stock4tres = stock4tres + tres;
-                                                                           stock6setecientos = stock6setecientos + setecientos;
+                                                                          stock1Recarga =
+                                                                              stock1Recarga + recarga;
+                                                                          stock2bidon =
+                                                                              stock2bidon + bidon;
+                                                                          stock3siete =
+                                                                              stock3siete + siete;
+                                                                          stock4tres =
+                                                                              stock4tres + tres;
+                                                                          stock6setecientos =
+                                                                              stock6setecientos + setecientos;
 
-                                                                           // LUEGO ACTUALIZAMOS ESE VALOR EN LA COLUMNA STOCK
+                                                                          // LUEGO ACTUALIZAMOS ESE VALOR EN LA COLUMNA STOCK
 
-                                                                           await updateStocK(
-                                                                                  conductorget[index1].id,
-                                                                                  stock1Recarga,
-                                                                                  stock2bidon,
-                                                                                  stock3siete,
-                                                                                  stock4tres,
-                                                                                  stock6setecientos);
+                                                                          await updateStocK(
+                                                                              conductorget[index1].id,
+                                                                              stock1Recarga,
+                                                                              stock2bidon,
+                                                                              stock3siete,
+                                                                              stock4tres,
+                                                                              stock6setecientos);
+                                                                        } else {
+
                                                                         }
-                                                                        else{
-                                                                          
-                                                                        }
-                                                                       
                                                                       },
                                                                       style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.teal)),
                                                                       child: Text(
