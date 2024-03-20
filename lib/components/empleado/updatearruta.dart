@@ -133,6 +133,17 @@ class Conductor {
       //  this.pedidos = const [],
       this.seleccionado = false});
 }
+class Vehiculo{
+  int id;
+  String nombremodelo;
+  String placa;
+  
+  Vehiculo({
+    required this.id,
+    required this.nombremodelo,
+    required this.placa,
+  });
+}
 
 class Update extends StatefulWidget {
   const Update({Key? key}) : super(key: key);
@@ -179,11 +190,13 @@ class _UpdateState extends State<Update> {
   String pedidosConductor = '/api/conductorPedidos/';
   String updatePedidoRuta = '/api/pedidoruta/';
   String vehiculoProductoStock = '/api/vehiculo_producto_stock/';
-  String vehiculoProductoCond = '/api/vp_conductor/';
+  String vehiculoProductoCond = '/api/vp_vehiculo/';
+  String apivehiculos = '/api/vehiculo/';
 
   List<Conductor> obtenerConductor = [];
   int conductorid = 0;
   List<Pedido> pedidosXConductor = [];
+  Map<Vehiculo,List<VehiculoProducto>>mapaVehiculoXVehiculoProducto = {};
   Map<Conductor, List<Pedido>> mapaConductorXPedido = {};
 
   List<Marker> marcadorAsignado = [];
@@ -200,6 +213,7 @@ class _UpdateState extends State<Update> {
   List<TextEditingController> controladores = [];
 
   List<VehiculoProducto> vehiculoProductosConductor = [];
+  List<Vehiculo>vehiculos=[];
 
   // VARIABLES PRODUCTOS DEL CONDUCTOR
   int recarga = 0;
@@ -230,9 +244,27 @@ class _UpdateState extends State<Update> {
 
   Future<void> initAsync() async {
     await getConductores(); // Esperar a que se completen las operaciones asíncronas
+    await getVehiculos();
     connectToServer();
     getPedidos();
     getPedidosXConductor();
+    getVehiculoVehiculoProducto();
+
+  }
+  void getVehiculoVehiculoProducto()async{
+    print("---dentro de mapa nuevo");
+    List<VehiculoProducto> stockVehiculoProducto=[];
+    for (var z = 0;z<vehiculos.length;z++){
+      stockVehiculoProducto = await getVehiculoProducto(vehiculos[z].id);
+      setState(() {
+        mapaVehiculoXVehiculoProducto[vehiculos[z]]= stockVehiculoProducto;
+      });
+    }
+    setState(() {
+      
+    });
+
+    
   }
 
   void getPedidosXConductor() async {
@@ -743,6 +775,33 @@ class _UpdateState extends State<Update> {
     });
   }
 
+  Future<dynamic>getVehiculos()async{
+    print("%%%%%%%%% vehiculos");
+    final SharedPreferences empleadoShare =
+        await SharedPreferences.getInstance();
+    var res = await http.get(Uri.parse(api+apivehiculos+empleadoShare.getInt('empleadoID').toString()),
+    headers: {"Content-type":"application/json"});
+    try{
+      if(res.statusCode==200){
+        var data = json.decode(res.body);
+        List<Vehiculo>tempVehiculo = data.map<Vehiculo>((data){
+          return Vehiculo(id: data['id'],
+           nombremodelo: data['nombre_modelo'],
+            placa: data['placa']);
+        }).toList();
+        setState(() {
+          vehiculos = tempVehiculo;
+        });
+        print("----Get vehiculos");
+        print(vehiculos);
+        return vehiculos;
+      }
+    }
+    catch(e){
+      throw Exception("$e");
+    }
+  }
+
   Future<String> getImageBytes(String assetPath) async {
     final supportDir = await getApplicationSupportDirectory();
     final bytes = await rootBundle.load(assetPath);
@@ -843,9 +902,9 @@ class _UpdateState extends State<Update> {
     }
   }
 
-  Future<dynamic> getVehiculoProducto(int conductorid) async {
+  Future<dynamic> getVehiculoProducto(int vehiculoid) async {
     var res = await http.get(
-        Uri.parse(api + vehiculoProductoCond + conductorid.toString()),
+        Uri.parse(api + vehiculoProductoCond + vehiculoid.toString()),
         headers: {"Content-type": "application/json"});
     try {
       if (res.statusCode == 200) {
@@ -872,10 +931,8 @@ class _UpdateState extends State<Update> {
     }
   }
 
-  
   // --- = ) SONRIEE....AQUIII JEJE LE CAMBIAS LA URI Q QUIERAS
   Future<dynamic> getZonaProducto(int empleadoid) async {
-
 //AQUI
     var res = await http
         .get(Uri.parse(api), headers: {"Content-type": "application/json"});
@@ -895,7 +952,7 @@ class _UpdateState extends State<Update> {
           //   algo =  tempZonaProducto;
         });
         // o si no trabajar con la temporal directamente
-         // return tempZonaProducto;
+        // return tempZonaProducto;
       }
     } catch (e) {
       throw Exception("$e");
@@ -1353,9 +1410,7 @@ class _UpdateState extends State<Update> {
                                                                               stock3siete,
                                                                               stock4tres,
                                                                               stock6setecientos);
-                                                                        } else {
-                                                                          
-                                                                        }
+                                                                        } else {}
                                                                       },
                                                                       style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.teal)),
                                                                       child: Text(
@@ -1476,6 +1531,99 @@ class _UpdateState extends State<Update> {
               ),
 
               // FORMULARIO
+              Positioned(
+                  top: 10,
+                  left: 220,
+                  child: Container(
+                    width: MediaQuery.of(context).size.width / 3,
+                    height: MediaQuery.of(context).size.height / 2.5,
+                    color: Colors.blue,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: Colors.teal),
+                          child: const Text(
+                            "Stock Vehículo Producto",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white),
+                          ),
+                        ),
+                        Container(
+                          height: 200,
+                          width: 500,
+
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            // color: Colors.white
+                          ),
+
+                          // LIST VIEW PRIMARIO
+
+                          child: ListView.builder(
+                              itemCount: vehiculos.length,
+                              itemBuilder: (context, index1) {
+                                return Container(
+                                    padding: const EdgeInsets.all(1),
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(20),
+                                        color: Colors.teal.withOpacity(0.8)),
+                                    margin: const EdgeInsets.only(top: 1),
+                                    child: Column(children: [
+                                      Row(
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.all(8),
+                                            decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                                color: containerColors[index1 %
+                                                    containerColors.length]),
+                                            child: Text(
+                                              "Vehiculo N° ${vehiculos[index1].id}",
+                                              style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: const Color.fromARGB(
+                                                      255,
+                                                      9,
+                                                      7,
+                                                      7) // containerColors[index1 % containerColors.length],
+                                                  ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Container(
+                                        height: 100,
+                                        child: ListView.builder(
+                                          itemCount: mapaVehiculoXVehiculoProducto[vehiculos[index1]]?.length?? 0,
+                                          itemBuilder: (context,index2){
+                                          return Container(
+                                            child: Row(
+                                              children: [
+                                                Text("ID: ${mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].id}"),
+                                                Text("Producto N° ${mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].producto_id}"),
+                                                Text("STOCK: ${mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].stock}"),
+                                                Text("Stock Vehículo: ${mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].stock_movil_conductor}"),
+                                                IconButton(onPressed: (){},
+                                                 icon: Icon(Icons.edit,color:Colors.pink))
+
+                                              ],
+                                            ),
+                                          );
+                                        }),
+                                      )
+                                    ]));
+                              }),
+                        )
+                      ],
+                    ),
+                  )),
 
               // EXPRESS
               Positioned(
@@ -1735,8 +1883,8 @@ class _UpdateState extends State<Update> {
 
               // ASIGNAR RUTA
               Positioned(
-                top: 10,
-                left: 250,
+                top: 100,
+                left: 10,
                 child: Container(
                   padding: const EdgeInsets.all(20),
                   height: 250,
