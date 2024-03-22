@@ -10,7 +10,8 @@ import 'package:windows_notification/windows_notification.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart'
+    show FilteringTextInputFormatter, rootBundle;
 import 'dart:convert';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:lottie/lottie.dart' as lottie;
@@ -133,11 +134,12 @@ class Conductor {
       //  this.pedidos = const [],
       this.seleccionado = false});
 }
-class Vehiculo{
+
+class Vehiculo {
   int id;
   String nombremodelo;
   String placa;
-  
+
   Vehiculo({
     required this.id,
     required this.nombremodelo,
@@ -169,6 +171,7 @@ class _UpdateState extends State<Update> {
   //List<LatLng> puntosget = [];
   List<LatLng> puntosnormal = [];
   List<LatLng> puntosexpress = [];
+  final TextEditingController _text1 = TextEditingController(text: '0');
 
   // MARCADORES
   // List<Marker> marcadores = [];
@@ -196,7 +199,7 @@ class _UpdateState extends State<Update> {
   List<Conductor> obtenerConductor = [];
   int conductorid = 0;
   List<Pedido> pedidosXConductor = [];
-  Map<Vehiculo,List<VehiculoProducto>>mapaVehiculoXVehiculoProducto = {};
+  Map<Vehiculo, List<VehiculoProducto>> mapaVehiculoXVehiculoProducto = {};
   Map<Conductor, List<Pedido>> mapaConductorXPedido = {};
 
   List<Marker> marcadorAsignado = [];
@@ -213,7 +216,7 @@ class _UpdateState extends State<Update> {
   List<TextEditingController> controladores = [];
 
   List<VehiculoProducto> vehiculoProductosConductor = [];
-  List<Vehiculo>vehiculos=[];
+  List<Vehiculo> vehiculos = [];
 
   // VARIABLES PRODUCTOS DEL CONDUCTOR
   int recarga = 0;
@@ -230,6 +233,17 @@ class _UpdateState extends State<Update> {
   int stock4tres = 0;
   int stock5vacio = 0;
   int stock6setecientos = 0;
+
+  List<int> idsadd = [];
+  List<int> valoresText = [];
+  List<int> valoresUpdate = [];
+  Map<int, int> idpedidoVALORACTUALIZAR = {};
+  // LIBERACIÓN DE RECURSOS
+  @override
+  void dispose() {
+    _text1.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -249,22 +263,18 @@ class _UpdateState extends State<Update> {
     getPedidos();
     getPedidosXConductor();
     getVehiculoVehiculoProducto();
-
   }
-  void getVehiculoVehiculoProducto()async{
+
+  void getVehiculoVehiculoProducto() async {
     print("---dentro de mapa nuevo");
-    List<VehiculoProducto> stockVehiculoProducto=[];
-    for (var z = 0;z<vehiculos.length;z++){
+    List<VehiculoProducto> stockVehiculoProducto = [];
+    for (var z = 0; z < vehiculos.length; z++) {
       stockVehiculoProducto = await getVehiculoProducto(vehiculos[z].id);
       setState(() {
-        mapaVehiculoXVehiculoProducto[vehiculos[z]]= stockVehiculoProducto;
+        mapaVehiculoXVehiculoProducto[vehiculos[z]] = stockVehiculoProducto;
       });
     }
-    setState(() {
-      
-    });
-
-    
+    setState(() {});
   }
 
   void getPedidosXConductor() async {
@@ -527,6 +537,7 @@ class _UpdateState extends State<Update> {
                     fechaparseadas.month == now.month &&
                     fechaparseadas.day == now.day) {
                   if (fechaparseadas.hour < 13) {
+                    print("---antes del 1 GET");
                     setState(() {
                       latitudtemp =
                           (pedidosget[i].latitud ?? 0.0) + (0.000001 * count);
@@ -674,8 +685,8 @@ class _UpdateState extends State<Update> {
               print(fechaparseada.hour);
 
               /// SERA NECESARIO APLICAR LA LOGICA EN ESTA VISTA????????????????????????????
-              if (fechaparseada.hour < 19) {
-                print('es antes de la 1');
+              if (fechaparseada.hour < 13) {
+                print('es antes de la 1 EN socket');
                 hoypedidos.add(nuevoPedido);
 
                 // OBTENER COORDENADAS DE LOS PEDIDOS
@@ -775,19 +786,22 @@ class _UpdateState extends State<Update> {
     });
   }
 
-  Future<dynamic>getVehiculos()async{
+  Future<dynamic> getVehiculos() async {
     print("%%%%%%%%% vehiculos");
     final SharedPreferences empleadoShare =
         await SharedPreferences.getInstance();
-    var res = await http.get(Uri.parse(api+apivehiculos+empleadoShare.getInt('empleadoID').toString()),
-    headers: {"Content-type":"application/json"});
-    try{
-      if(res.statusCode==200){
+    var res = await http.get(
+        Uri.parse(
+            api + apivehiculos + empleadoShare.getInt('empleadoID').toString()),
+        headers: {"Content-type": "application/json"});
+    try {
+      if (res.statusCode == 200) {
         var data = json.decode(res.body);
-        List<Vehiculo>tempVehiculo = data.map<Vehiculo>((data){
-          return Vehiculo(id: data['id'],
-           nombremodelo: data['nombre_modelo'],
-            placa: data['placa']);
+        List<Vehiculo> tempVehiculo = data.map<Vehiculo>((data) {
+          return Vehiculo(
+              id: data['id'],
+              nombremodelo: data['nombre_modelo'],
+              placa: data['placa']);
         }).toList();
         setState(() {
           vehiculos = tempVehiculo;
@@ -796,8 +810,7 @@ class _UpdateState extends State<Update> {
         print(vehiculos);
         return vehiculos;
       }
-    }
-    catch(e){
+    } catch (e) {
       throw Exception("$e");
     }
   }
@@ -1180,267 +1193,6 @@ class _UpdateState extends State<Update> {
                                               fontSize: 12),
                                         ),
                                       ),
-                                      Container(
-                                        height: 80,
-                                        width: 80,
-                                        decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(50)),
-                                        child: ElevatedButton(
-                                            onPressed: () {
-                                              print("stockeando...");
-                                              showModalBottomSheet(
-                                                  context: context,
-                                                  builder:
-                                                      (BuildContext context) {
-                                                    return Container(
-                                                      margin:
-                                                          const EdgeInsets.all(
-                                                              20),
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                              6),
-                                                      height: 450,
-                                                      decoration: BoxDecoration(
-                                                          color: Color.fromARGB(
-                                                              255,
-                                                              142,
-                                                              85,
-                                                              104),
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(
-                                                                      20)),
-                                                      width:
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .width /
-                                                              3,
-                                                      child: Column(
-                                                        children: [
-                                                          Container(
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .all(15),
-                                                            height: MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .height /
-                                                                2.5,
-                                                            width: 180,
-                                                            decoration: BoxDecoration(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            20),
-                                                                color: Colors
-                                                                    .amber),
-                                                            child: Form(
-                                                                child: Column(
-                                                              children: [
-                                                                Text(
-                                                                  "Stock Móvil",
-                                                                  style:
-                                                                      TextStyle(
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .bold,
-                                                                  ),
-                                                                ),
-                                                                TextFormField(
-                                                                  controller:
-                                                                      _recarga,
-                                                                  decoration:
-                                                                      InputDecoration(
-                                                                    labelText:
-                                                                        'Recarga: ',
-                                                                    labelStyle: TextStyle(
-                                                                        fontSize:
-                                                                            11),
-                                                                  ),
-                                                                ),
-                                                                TextFormField(
-                                                                  controller:
-                                                                      _bidon,
-                                                                  decoration:
-                                                                      InputDecoration(
-                                                                    labelText:
-                                                                        'Bidón 20L ',
-                                                                    labelStyle: TextStyle(
-                                                                        fontSize:
-                                                                            11),
-                                                                  ),
-                                                                ),
-                                                                TextFormField(
-                                                                  controller:
-                                                                      _siete,
-                                                                  decoration:
-                                                                      InputDecoration(
-                                                                    labelText:
-                                                                        'Botella 7L ',
-                                                                    labelStyle: TextStyle(
-                                                                        fontSize:
-                                                                            11),
-                                                                  ),
-                                                                ),
-                                                                TextFormField(
-                                                                  controller:
-                                                                      _tres,
-                                                                  decoration:
-                                                                      InputDecoration(
-                                                                    labelText:
-                                                                        'Botella 3L ',
-                                                                    labelStyle: TextStyle(
-                                                                        fontSize:
-                                                                            11),
-                                                                  ),
-                                                                ),
-                                                                TextFormField(
-                                                                  controller:
-                                                                      _setecientos,
-                                                                  decoration:
-                                                                      InputDecoration(
-                                                                    labelText:
-                                                                        'Botella 700mL ',
-                                                                    labelStyle: TextStyle(
-                                                                        fontSize:
-                                                                            11),
-                                                                  ),
-                                                                ),
-                                                                Container(
-                                                                  margin:
-                                                                      const EdgeInsets
-                                                                          .only(
-                                                                          top:
-                                                                              20),
-                                                                  child: ElevatedButton(
-                                                                      onPressed: () async {
-                                                                        List<VehiculoProducto>
-                                                                            vpConductor =
-                                                                            await getVehiculoProducto(conductorget[index1].id);
-
-                                                                        // variables
-                                                                        print(
-                                                                            "vpconductor");
-                                                                        print(
-                                                                            vpConductor);
-                                                                        print(vpConductor
-                                                                            .length);
-
-                                                                        // ASIGNACIÓN DE VARIABLES DE STOCK CONDUCTOR
-                                                                        for (var i =
-                                                                                0;
-                                                                            i < vpConductor.length;
-                                                                            i++) {
-                                                                          if (vpConductor[i].producto_id ==
-                                                                              1) {
-                                                                            print("Recarga");
-                                                                            setState(() {
-                                                                              recarga = vpConductor[i].stock_movil_conductor;
-                                                                              stock1Recarga = vpConductor[i].stock;
-                                                                            });
-                                                                          } else if (vpConductor[i].producto_id ==
-                                                                              2) {
-                                                                            print("Bidon");
-                                                                            setState(() {
-                                                                              bidon = vpConductor[i].stock_movil_conductor;
-                                                                              stock2bidon = vpConductor[i].stock;
-                                                                            });
-                                                                          } else if (vpConductor[i].producto_id ==
-                                                                              3) {
-                                                                            print("7 LITROS");
-                                                                            setState(() {
-                                                                              siete = vpConductor[i].stock_movil_conductor;
-                                                                              stock3siete = vpConductor[i].stock;
-                                                                            });
-                                                                          } else if (vpConductor[i].producto_id ==
-                                                                              4) {
-                                                                            print("3 LITROS");
-                                                                            setState(() {
-                                                                              tres = vpConductor[i].stock_movil_conductor;
-                                                                              stock4tres = vpConductor[i].stock;
-                                                                            });
-                                                                          } else if (vpConductor[i].producto_id ==
-                                                                              5) {
-                                                                            print("700 ml");
-                                                                            setState(() {
-                                                                              setecientos = vpConductor[i].stock_movil_conductor;
-                                                                              stock6setecientos = vpConductor[i].stock;
-                                                                            });
-                                                                          } else {
-                                                                            print("Vacio");
-                                                                            setState(() {
-                                                                              vacio = vpConductor[i].stock_movil_conductor;
-                                                                              stock5vacio = vpConductor[i].stock;
-                                                                            });
-                                                                          }
-                                                                        }
-                                                                        print(
-                                                                            "productos stock conductor");
-                                                                        print(
-                                                                            "$recarga $bidon $siete $tres $setecientos $vacio");
-                                                                        if (int.parse(_recarga.text) == recarga &&
-                                                                            int.parse(_bidon.text) ==
-                                                                                bidon &&
-                                                                            int.parse(_siete.text) ==
-                                                                                siete &&
-                                                                            int.parse(_tres.text) ==
-                                                                                tres &&
-                                                                            int.parse(_setecientos.text) ==
-                                                                                setecientos) {
-                                                                          // RESIDUO MÁS EL NUEVO DEL FORMULARIO O CONDUCTOR
-
-                                                                          stock1Recarga =
-                                                                              stock1Recarga + recarga;
-                                                                          stock2bidon =
-                                                                              stock2bidon + bidon;
-                                                                          stock3siete =
-                                                                              stock3siete + siete;
-                                                                          stock4tres =
-                                                                              stock4tres + tres;
-                                                                          stock6setecientos =
-                                                                              stock6setecientos + setecientos;
-
-                                                                          // LUEGO ACTUALIZAMOS ESE VALOR EN LA COLUMNA STOCK
-
-                                                                          await updateStocK(
-                                                                              conductorget[index1].id,
-                                                                              stock1Recarga,
-                                                                              stock2bidon,
-                                                                              stock3siete,
-                                                                              stock4tres,
-                                                                              stock6setecientos);
-                                                                        } else {}
-                                                                      },
-                                                                      style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.teal)),
-                                                                      child: Text(
-                                                                        "Actualizar Stock",
-                                                                        style: TextStyle(
-                                                                            fontSize:
-                                                                                11,
-                                                                            color:
-                                                                                Colors.white),
-                                                                      )),
-                                                                )
-                                                              ],
-                                                            )),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    );
-                                                  });
-                                            },
-                                            style: ButtonStyle(
-                                                backgroundColor:
-                                                    MaterialStateProperty.all(
-                                                        Colors.pink)),
-                                            child: Text(
-                                              "Stock",
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 12),
-                                            )),
-                                      ),
                                     ],
                                   ),
                                   Container(
@@ -1536,8 +1288,8 @@ class _UpdateState extends State<Update> {
                   left: 220,
                   child: Container(
                     width: MediaQuery.of(context).size.width / 3,
-                    height: MediaQuery.of(context).size.height / 2.5,
-                    color: Colors.blue,
+                    height: MediaQuery.of(context).size.height / 2.0,
+                    //color: Colors.blue,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -1554,12 +1306,12 @@ class _UpdateState extends State<Update> {
                           ),
                         ),
                         Container(
-                          height: 200,
+                          height: 350,
                           width: 500,
 
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(20),
-                            // color: Colors.white
+                            //color: Colors.grey
                           ),
 
                           // LIST VIEW PRIMARIO
@@ -1568,6 +1320,7 @@ class _UpdateState extends State<Update> {
                               itemCount: vehiculos.length,
                               itemBuilder: (context, index1) {
                                 return Container(
+                                    height: 300,
                                     padding: const EdgeInsets.all(1),
                                     decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(20),
@@ -1596,27 +1349,193 @@ class _UpdateState extends State<Update> {
                                                   ),
                                             ),
                                           ),
+                                          Container(
+                                            height: 80,
+                                            width: 80,
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(50),
+                                              //color: Colors.pink
+                                            ),
+                                            child: ElevatedButton(
+                                              onPressed: () {
+                                                print("s");
+                                                if (idsadd.isNotEmpty)
+                                                  print("LISTO--------");
+                                              },
+                                              style: ButtonStyle(
+                                                  backgroundColor:
+                                                      MaterialStateProperty.all(
+                                                          Colors.pink)),
+                                              child: const Text(
+                                                "Listo?",
+                                                style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: Colors.white),
+                                              ),
+                                            ),
+                                          )
                                         ],
                                       ),
                                       Container(
-                                        height: 100,
+                                        height: 250,
                                         child: ListView.builder(
-                                          itemCount: mapaVehiculoXVehiculoProducto[vehiculos[index1]]?.length?? 0,
-                                          itemBuilder: (context,index2){
-                                          return Container(
-                                            child: Row(
-                                              children: [
-                                                Text("ID: ${mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].id}"),
-                                                Text("Producto N° ${mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].producto_id}"),
-                                                Text("STOCK: ${mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].stock}"),
-                                                Text("Stock Vehículo: ${mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].stock_movil_conductor}"),
-                                                IconButton(onPressed: (){},
-                                                 icon: Icon(Icons.edit,color:Colors.pink))
+                                            itemCount:
+                                                mapaVehiculoXVehiculoProducto[
+                                                            vehiculos[index1]]
+                                                        ?.length ??
+                                                    0,
+                                            itemBuilder: (context, index2) {
+                                              return Container(
+                                                margin: const EdgeInsets.only(
+                                                    top: 5),
+                                                decoration: BoxDecoration(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            20),
+                                                    color: Colors.white
+                                                        .withOpacity(0.9)),
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    Text(
+                                                        "ID: ${mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].id}"),
+                                                    Text(
+                                                        "Producto N° ${mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].producto_id}"),
+                                                    Text(
+                                                        "STOCK: ${mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].stock}"),
+                                                    Text(
+                                                        "Stock Vehículo: ${mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].stock_movil_conductor}"),
+                                                    IconButton(
+                                                        onPressed: () {
+                                                          print(
+                                                              "dentro del LAPIZ");
+                                                          showDialog<void>(
+                                                            context: context,
+                                                            barrierDismissible:
+                                                                false, // user must tap button!
+                                                            builder:
+                                                                (BuildContext
+                                                                    context) {
+                                                              return AlertDialog(
+                                                                title: Text(
+                                                                    'Actualizar la cantidad del ID: ${mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].id}'),
+                                                                content:
+                                                                    SingleChildScrollView(
+                                                                  child:
+                                                                      ListBody(
+                                                                    children: <Widget>[
+                                                                      TextField(
+                                                                        controller:
+                                                                            _text1,
+                                                                        decoration:
+                                                                            InputDecoration(
+                                                                          labelText:
+                                                                              'Ingresa número',
+                                                                        ),
+                                                                        keyboardType:
+                                                                            TextInputType.number,
+                                                                        inputFormatters: [
+                                                                          FilteringTextInputFormatter.allow(
+                                                                              RegExp(r'[0-9]'))
+                                                                        ],
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                                actions: <Widget>[
+                                                                  // BOTON CANCELAR
+                                                                  TextButton(
+                                                                      onPressed:
+                                                                          () {
+                                                                        //REMUEVE EL ULTIMO ID AÑADIDO POR Q CANCELO
+                                                                        if (idsadd
+                                                                            .isNotEmpty) {
+                                                                         
+                                                                             final valorID =
+                                                                          mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2]
+                                                                              .id;
+                                                                          print(
+                                                                              "cancelando...");
+                                                                        
 
-                                              ],
-                                            ),
-                                          );
-                                        }),
+                                                                          // valoresText.removeLast();
+                                                                          // idpedidoVALORACTUALIZAR.removeWhere((key, value) => false);
+                                                                        }
+                                                                        _text1
+                                                                            .clear();
+                                                                        _text1.text =
+                                                                            '0';
+
+                                                                        Navigator.of(context)
+                                                                            .pop();
+                                                                      },
+                                                                      child: const Text(
+                                                                          "Cancelar")),
+
+                                                                  /// BOTON APROBAR
+                                                                  TextButton(
+                                                                    onPressed:
+                                                                        () {
+                                                                      //int valorID = 0;
+
+                                                                      final valorID =
+                                                                          mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2]
+                                                                              .id;
+                                                                      if (valorID !=
+                                                                          null) {
+                                                                        //idsadd.add(valorID);
+
+                                                                        if (!idsadd
+                                                                            .contains(valorID)) {
+                                                                          print(
+                                                                              "if : $idsadd");
+                                                                          print(
+                                                                              idsadd);
+                                                                          idsadd
+                                                                              .add(valorID);
+
+                                                                          idpedidoVALORACTUALIZAR[valorID] =
+                                                                              int.parse(_text1.text);
+                                                                          print(
+                                                                              idpedidoVALORACTUALIZAR);
+
+                                                                          _text1
+                                                                              .clear();
+                                                                          _text1.text =
+                                                                              '0';
+                                                                        } else {
+                                                                          
+                                                                          idpedidoVALORACTUALIZAR[valorID] =
+                                                                              int.parse(_text1.text);
+                                                                               print(
+                                                                              idpedidoVALORACTUALIZAR);
+                                                                          _text1
+                                                                              .clear();
+                                                                          _text1.text =
+                                                                              '0';
+                                                                        }
+                                                                      }
+                                                                      Navigator.of(
+                                                                              context)
+                                                                          .pop();
+                                                                    },
+                                                                    child: const Text(
+                                                                        'Aprobar ?'),
+                                                                  ),
+                                                                ],
+                                                              );
+                                                            },
+                                                          );
+                                                        },
+                                                        icon: Icon(Icons.edit,
+                                                            color: Colors.pink))
+                                                  ],
+                                                ),
+                                              );
+                                            }),
                                       )
                                     ]));
                               }),
