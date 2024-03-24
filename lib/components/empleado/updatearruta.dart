@@ -192,7 +192,7 @@ class _UpdateState extends State<Update> {
   String conductoresRuta = '/api/conductor_ruta';
   String pedidosConductor = '/api/conductorPedidos/';
   String updatePedidoRuta = '/api/pedidoruta/';
-  String vehiculoProductoStock = '/api/vehiculo_producto_stock/';
+  String vehiculoProductoStock = '/api/vehiculoXempleado/';
   String vehiculoProductoCond = '/api/vp_vehiculo/';
   String apivehiculos = '/api/vehiculo/';
 
@@ -536,7 +536,7 @@ class _UpdateState extends State<Update> {
                 if (fechaparseadas.year == now.year &&
                     fechaparseadas.month == now.month &&
                     fechaparseadas.day == now.day) {
-                  if (fechaparseadas.hour < 13) {
+                  if (fechaparseadas.hour < 16) {
                     print("---antes del 1 GET");
                     setState(() {
                       latitudtemp =
@@ -685,7 +685,7 @@ class _UpdateState extends State<Update> {
               print(fechaparseada.hour);
 
               /// SERA NECESARIO APLICAR LA LOGICA EN ESTA VISTA????????????????????????????
-              if (fechaparseada.hour < 13) {
+              if (fechaparseada.hour < 16) {
                 print('es antes de la 1 EN socket');
                 hoypedidos.add(nuevoPedido);
 
@@ -891,25 +891,20 @@ class _UpdateState extends State<Update> {
     }
   }
 
-  Future<dynamic> updateStocK(int conductorid, int recarga, int bidon,
-      int siete, int tres, int setecientos) async {
+  Future<dynamic> updateStocK(int vehiculoID,int idProducto, int stockMovilConductor) async {
     try {
+      print("(((((((()))))))) VEHICULO ID");
+      print(vehiculoID);
+      print(api + vehiculoProductoStock + vehiculoID.toString()+'/'+idProducto.toString());
       await http.put(
-          Uri.parse(api + vehiculoProductoStock + conductorid.toString()),
+          Uri.parse(api + vehiculoProductoStock + vehiculoID.toString()+'/'+idProducto.toString()),
           headers: {"Content-type": "application/json"},
           body: jsonEncode({
-            "stock1": recarga,
-            "stock2": bidon,
-            "stock3": siete,
-            "stock4": tres,
-            "stock5": setecientos
+            "stockproducto":stockMovilConductor
           }));
       print("datos.........");
-      print(recarga);
-      print(bidon);
-      print(siete);
-      print(tres);
-      print(setecientos);
+      print(stockMovilConductor);
+    
     } catch (e) {
       throw Exception("$e");
     }
@@ -929,13 +924,14 @@ class _UpdateState extends State<Update> {
               producto_id: data['producto_id'],
               vehiculo_id: data['vehiculo_id'],
               stock: data['stock'],
-              stock_movil_conductor: data['stock_movil_conductor']);
+              stock_movil_conductor: data['stock_movil_conductor'] ?? 0);
         }).toList();
 
-        return tempVehiculoProducto;
-        /*setState(() {
+         setState(() {
           vehiculoProductosConductor = tempVehiculoProducto;
-        });*/
+        });
+        return tempVehiculoProducto;
+       
         print("----VEHICULO PRODUCTOR");
         print(vehiculoProductosConductor);
       }
@@ -1320,7 +1316,7 @@ class _UpdateState extends State<Update> {
                               itemCount: vehiculos.length,
                               itemBuilder: (context, index1) {
                                 return Container(
-                                    height: 300,
+                                    height: 305,
                                     padding: const EdgeInsets.all(1),
                                     decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(20),
@@ -1349,7 +1345,7 @@ class _UpdateState extends State<Update> {
                                                   ),
                                             ),
                                           ),
-                                          Container(
+                                        /*  Container(
                                             height: 80,
                                             width: 80,
                                             decoration: BoxDecoration(
@@ -1359,9 +1355,85 @@ class _UpdateState extends State<Update> {
                                             ),
                                             child: ElevatedButton(
                                               onPressed: () {
+                                                showDialog<void>(
+                                                            context: context,
+                                                            barrierDismissible:
+                                                                false, // user must tap button!
+                                                            builder:
+                                                                (BuildContext
+                                                                    context) {
+                                                              return AlertDialog(
+                                                                title: Text(
+                                                                    'Los Valores a actualizar son:'),
+                                                                content:
+                                                                    SingleChildScrollView(
+                                                                  child:
+                                                                      ListBody(
+                                                                    children: <Widget>[
+                                                                      Text("ID : VALOR",style: TextStyle(fontWeight: FontWeight.bold),),
+                                                                      Text("${idpedidoVALORACTUALIZAR}",style:TextStyle(
+                                                                        fontWeight: FontWeight.bold,color: Colors.teal
+                                                                      ),)
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                                actions: <Widget>[
+                                                                  // BOTON CANCELAR
+                                                                  TextButton(
+                                                                      onPressed:
+                                                                          () {
+                                                                        
+                                                                       
+
+                                                                        Navigator.of(context)
+                                                                            .pop();
+                                                                      },
+                                                                      child: const Text(
+                                                                          "Cancelar")),
+
+                                                                  /// BOTON APROBAR
+                                                                  TextButton(
+                                                                    onPressed:
+                                                                        ()async {
+                                                                          
+
+                                                                      if(idsadd.isNotEmpty){
+                                                                        stock1Recarga = idpedidoVALORACTUALIZAR[1] ?? 0;
+                                                                        stock2bidon = idpedidoVALORACTUALIZAR[2] ?? vehiculoProductosConductor[index1].stock_movil_conductor;
+                                                                        stock3siete = idpedidoVALORACTUALIZAR[3] ?? vehiculoProductosConductor[index1].stock_movil_conductor;
+                                                                        stock4tres = idpedidoVALORACTUALIZAR[4] ?? vehiculoProductosConductor[index1].stock_movil_conductor;
+                                                                        stock6setecientos = idpedidoVALORACTUALIZAR[5] ?? vehiculoProductosConductor[index1].stock_movil_conductor;
+                                                                        await updateStocK(vehiculos[index1].id,
+                                                                         stock1Recarga,
+                                                                          stock2bidon,
+                                                                           stock3siete,
+                                                                            stock4tres,
+                                                                             stock6setecientos);
+                                                                      }
+
+                                                                      //RESETEAMOS
+                                                                      idpedidoVALORACTUALIZAR={};
+                                                                      idsadd = [];
+                                                                      Navigator.of(
+                                                                              context)
+                                                                          .pop();
+                                                                    },
+                                                                    child: const Text(
+                                                                        'Aprobar ?'),
+                                                                  ),
+                                                                ],
+                                                              );
+                                                            },
+                                                          );
                                                 print("s");
-                                                if (idsadd.isNotEmpty)
-                                                  print("LISTO--------");
+                                                if (idpedidoVALORACTUALIZAR.isNotEmpty)
+                                                 {
+                                                   print("LISTO--------");
+                                                   print("mapa");
+                                                   print(idpedidoVALORACTUALIZAR);
+                                                   print("idsadd");
+                                                   print(idsadd);
+                                                 }
                                               },
                                               style: ButtonStyle(
                                                   backgroundColor:
@@ -1374,7 +1446,7 @@ class _UpdateState extends State<Update> {
                                                     color: Colors.white),
                                               ),
                                             ),
-                                          )
+                                          )*/
                                         ],
                                       ),
                                       Container(
@@ -1401,13 +1473,19 @@ class _UpdateState extends State<Update> {
                                                           .spaceBetween,
                                                   children: [
                                                     Text(
-                                                        "ID: ${mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].id}"),
+                                                        "ID: ${mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].id}",style: TextStyle(color: const Color.fromARGB(255, 1, 71, 64),fontWeight:FontWeight.bold)),
                                                     Text(
-                                                        "Producto N° ${mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].producto_id}"),
+                                                        "Producto N° ${mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].producto_id}",style: TextStyle(
+                                                          color: Colors.orange,fontWeight: FontWeight.bold
+                                                        ),),
                                                     Text(
-                                                        "STOCK: ${mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].stock}"),
+                                                        "STOCK: ${mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].stock}",style: TextStyle(
+                                                          fontWeight: FontWeight.bold,color: Colors.red
+                                                        ),),
                                                     Text(
-                                                        "Stock Vehículo: ${mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].stock_movil_conductor}"),
+                                                        "Stock Vehículo: ${mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].stock_movil_conductor}",style: TextStyle(
+                                                          fontWeight: FontWeight.bold,color: const Color.fromARGB(255, 16, 47, 72)
+                                                        ),),
                                                     IconButton(
                                                         onPressed: () {
                                                           print(
@@ -1450,24 +1528,8 @@ class _UpdateState extends State<Update> {
                                                                   TextButton(
                                                                       onPressed:
                                                                           () {
-                                                                        //REMUEVE EL ULTIMO ID AÑADIDO POR Q CANCELO
-                                                                        if (idsadd
-                                                                            .isNotEmpty) {
-                                                                         
-                                                                             final valorID =
-                                                                          mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2]
-                                                                              .id;
-                                                                          print(
-                                                                              "cancelando...");
                                                                         
-
-                                                                          // valoresText.removeLast();
-                                                                          // idpedidoVALORACTUALIZAR.removeWhere((key, value) => false);
-                                                                        }
-                                                                        _text1
-                                                                            .clear();
-                                                                        _text1.text =
-                                                                            '0';
+                                                                       
 
                                                                         Navigator.of(context)
                                                                             .pop();
@@ -1478,46 +1540,63 @@ class _UpdateState extends State<Update> {
                                                                   /// BOTON APROBAR
                                                                   TextButton(
                                                                     onPressed:
-                                                                        () {
-                                                                      //int valorID = 0;
+                                                                        ()async {
+                                                                      final productoID = mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].producto_id;
+                                                                      if(_text1.text!=''){
+                                                                        await updateStocK(vehiculos[index1].id,productoID!, int.parse(_text1.text));
+                                                                        getVehiculoVehiculoProducto();
+                                                                        setState(() {
+                                                                          
+                                                                        });
+                                                                      }
+                                                                      else{
+                                                                         await updateStocK(vehiculos[index1].id,productoID!,0);
+                                                                          getVehiculoVehiculoProducto();
+                                                                         setState(() {
+                                                                           
+                                                                         });
+                                                                      }
 
-                                                                      final valorID =
-                                                                          mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2]
-                                                                              .id;
-                                                                      if (valorID !=
-                                                                          null) {
+                                                                     
+
+
+
+                                                                      /*
+
+                                                                      final valorID =  mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].id;
+                                                                      if (valorID !=null) {
                                                                         //idsadd.add(valorID);
 
-                                                                        if (!idsadd
-                                                                            .contains(valorID)) {
-                                                                          print(
-                                                                              "if : $idsadd");
-                                                                          print(
-                                                                              idsadd);
-                                                                          idsadd
-                                                                              .add(valorID);
+                                                                        if (!idsadd.contains(valorID)) {
+                                                                          print("if : $idsadd");
+                                                                          
+                                                                          idsadd.add(valorID);
+                                                                          print( idsadd);
+                                                                          if(_text1.text!=''){
+                                                                            idpedidoVALORACTUALIZAR[valorID] = int.parse(_text1.text);
+                                                                          }
+                                                                          else{
+                                                                            idpedidoVALORACTUALIZAR[valorID] = 0;
+                                                                          }
 
-                                                                          idpedidoVALORACTUALIZAR[valorID] =
-                                                                              int.parse(_text1.text);
-                                                                          print(
-                                                                              idpedidoVALORACTUALIZAR);
+                                                                          
+                                                                          print( idpedidoVALORACTUALIZAR);
 
-                                                                          _text1
-                                                                              .clear();
-                                                                          _text1.text =
-                                                                              '0';
+                                                                          _text1.clear();
+                                                                          _text1.text ='0';
                                                                         } else {
                                                                           
-                                                                          idpedidoVALORACTUALIZAR[valorID] =
-                                                                              int.parse(_text1.text);
-                                                                               print(
-                                                                              idpedidoVALORACTUALIZAR);
-                                                                          _text1
-                                                                              .clear();
-                                                                          _text1.text =
-                                                                              '0';
+                                                                          if(_text1.text!=''){
+                                                                            idpedidoVALORACTUALIZAR[valorID] = int.parse(_text1.text);
+                                                                          }
+                                                                          else{
+                                                                            idpedidoVALORACTUALIZAR[valorID] = 0;
+                                                                          }
+                                                                               print( idpedidoVALORACTUALIZAR);
+                                                                          _text1.clear();
+                                                                          _text1.text ='0';
                                                                         }
-                                                                      }
+                                                                      }*/
                                                                       Navigator.of(
                                                                               context)
                                                                           .pop();
@@ -1531,7 +1610,64 @@ class _UpdateState extends State<Update> {
                                                           );
                                                         },
                                                         icon: Icon(Icons.edit,
-                                                            color: Colors.pink))
+                                                            color: Colors.pink)),
+                                                    
+                                                    // CANCELAR
+                                                   /* IconButton(onPressed: (){
+                                                      print(
+                                                              "dentro del CANCELAR");
+                                                          showDialog<void>(
+                                                            context: context,
+                                                            barrierDismissible:
+                                                                false, // user must tap button!
+                                                            builder:
+                                                                (BuildContext
+                                                                    context) {
+                                                              return AlertDialog(
+                                                                title: Text(
+                                                                    'Eliminar la cantidad del ID: ${mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].id} ?'),
+                                                                content:
+                                                                    SingleChildScrollView(
+                                                                  child:
+                                                                      ListBody(
+                                                                    children: <Widget>[
+                                                                      
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                                actions: <Widget>[
+                                                                  // BOTON CANCELAR
+                                                                  TextButton(
+                                                                      onPressed:
+                                                                          () {
+                                                                      
+
+                                                                        Navigator.of(context)
+                                                                            .pop();
+                                                                      },
+                                                                      child: const Text(
+                                                                          "Cancelar")),
+
+                                                                  /// BOTON APROBAR
+                                                                  TextButton(
+                                                                    onPressed:
+                                                                        () {
+                                                                      //int valorID = 0;
+
+                                                                      
+                                                                      Navigator.of(
+                                                                              context)
+                                                                          .pop();
+                                                                    },
+                                                                    child: const Text(
+                                                                        'Aprobar ?'),
+                                                                  ),
+                                                                ],
+                                                              );
+                                                            },
+                                                          );
+
+                                                    }, icon: Icon(Icons.cancel,color: Colors.pink,))*/
                                                   ],
                                                 ),
                                               );
