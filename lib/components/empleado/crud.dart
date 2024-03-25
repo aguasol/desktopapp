@@ -136,10 +136,10 @@ class _CrudState extends State<Crud> {
   // VEHICULO
   Future<dynamic> createVehiculo(nombremodelo, placa, adminid) async {
     try {
-      print("crear vehiculo");
-      print(nombremodelo);
-      print(placa);
-      print(apiUrl + apiVehiculo);
+      //print("crear vehiculo");
+      //print(nombremodelo);
+      //print(placa);
+      //print(apiUrl + apiVehiculo);
       var res = await http.post(Uri.parse(apiUrl + apiVehiculo),
           headers: {"Content-type": "application/json"},
           body: jsonEncode({
@@ -168,8 +168,8 @@ class _CrudState extends State<Crud> {
     );
     try {
       var data = json.decode(res.body);
-      print("data admin vehiculo");
-      print(data);
+      //print("data admin vehiculo");
+      //print(data);
       List<Vehiculo> tempVehiculo = data.map<Vehiculo>((data) {
         return Vehiculo(
           id: data['id'],
@@ -190,7 +190,7 @@ class _CrudState extends State<Crud> {
         Uri.parse(apiUrl + apiVehiculo + '/' + id.toString()),
         headers: {"Content-type": "application/json"});
     if (res.statusCode == 200) {
-      print("me booro");
+      //print("me booro");
     }
   }
 
@@ -203,8 +203,8 @@ class _CrudState extends State<Crud> {
 
       // Formatear la fecha como una cadena en el formato deseado (por ejemplo, 'yyyy-MM-dd')
       String fechaFormateada = DateFormat('yyyy-MM-dd').format(fechaNacimiento);
-      print("fechja");
-      print(fechaFormateada);
+     // print("fechja");
+     // print(fechaFormateada);
       var res = await http.post(Uri.parse(apiUrl + apiEmpleado),
           headers: {"Content-type": "application/json"},
           body: jsonEncode({
@@ -267,7 +267,7 @@ class _CrudState extends State<Crud> {
         Uri.parse(apiUrl + apiEmpleado + '/' + id.toString()),
         headers: {"Content-type": "application/json"});
     if (res.statusCode == 200) {
-      print("me booro");
+      //print("me booro");
     }
   }
 
@@ -275,13 +275,13 @@ class _CrudState extends State<Crud> {
   Future<dynamic> createConductor(nombre, apellidos, dni, fecha, usuario,
       contrasena, email, idadmin) async {
     try {
-      print("creando conduc");
+    //  print("creando conduc");
       DateTime fechaNacimiento = DateFormat('d/M/yyyy').parse(fecha);
 
       // Formatear la fecha como una cadena en el formato deseado (por ejemplo, 'yyyy-MM-dd')
       String fechaFormateada = DateFormat('yyyy-MM-dd').format(fechaNacimiento);
-      print("fechja");
-      print(fechaFormateada);
+      //print("fechja");
+      //print(fechaFormateada);
       var res = await http.post(Uri.parse(apiUrl + apiConductor),
           headers: {"Content-type": "application/json"},
           body: jsonEncode({
@@ -342,7 +342,7 @@ class _CrudState extends State<Crud> {
         Uri.parse(apiUrl + apiConductor + '/' + id.toString()),
         headers: {"Content-type": "application/json"});
     if (res.statusCode == 200) {
-      print("borro conductor");
+      //print("borro conductor");
     }
   }
 
@@ -355,7 +355,7 @@ class _CrudState extends State<Crud> {
         var data = json.decode(res.body);
 
         //
-        print("${data['main']['temp']}");
+     //   print("${data['main']['temp']}");
         setState(() {
           temperatura = data['main']['temp'] - 273.15;
         });
@@ -829,7 +829,7 @@ class _CrudState extends State<Crud> {
                           margin: const EdgeInsets.only(top: 20),
                           child: ElevatedButton(
                             onPressed: () async {
-                              print("asdfasdf");
+                            //  print("asdfasdf");
                               if (_formKey.currentState!.validate()) {
                                 showDialog(
                                   context: context,
@@ -847,7 +847,7 @@ class _CrudState extends State<Crud> {
                                     );
                                   },
                                 );
-                                print(_fechanacimiento.text);
+                              //  print(_fechanacimiento.text);
                                 try {
                                   await createConductor(
                                       _nombre.text,
@@ -861,7 +861,7 @@ class _CrudState extends State<Crud> {
                                   Navigator.of(context).pop();
 
                                   if (status == 200) {
-                                    print("200asdf");
+                                //    print("200asdf");
                                     showDialog(
                                       context: context,
                                       builder: (BuildContext context) {

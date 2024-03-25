@@ -31,8 +31,8 @@ class _Login1State extends State<Login1> {
       var res = await http.post(Uri.parse(api + login),
           headers: {"Content-type": "application/json"},
           body: json.encode({"nickname": username, "contrasena": password}));
-      print("RES.........");
-      print(res.body);
+      //print("RES.........");
+      //print(res.body);
       //
       SharedPreferences empleadoShare = await SharedPreferences.getInstance();
 
@@ -52,10 +52,10 @@ class _Login1State extends State<Login1> {
             //
           });
 
-          print("STATUS");
-          print(status);
-          print("ROL");
-          print(rol);
+        //  print("STATUS");
+        //  print(status);
+          //print("ROL");
+          //print(rol);
         }
         //ADMINISTRADOR
         else if (data['usuario']['rol_id'] == 1) {
@@ -67,34 +67,36 @@ class _Login1State extends State<Login1> {
             status = 200;
             rol = 1;
           });
-          print("STATUS");
-          print(status);
-          print("ROL");
-          print(rol);
+          //print("STATUS");
+          //print(status);
+          //print("ROL");
+          //print(rol);
         }
 
         /// SETEAMOS EL PROVIDER CON UN USUARIO
         Provider.of<UserProvider>(context, listen: false).updateUser(userData);
       } else if (res.statusCode == 401) {
         var data = json.decode(res.body);
-        print(data);
+       // print(data);
         setState(() {
           status = 401;
         });
-        print("STATUS");
-        print(status);
-        print("ROL");
-        print(rol);
+        //print("STATUS");
+        //print(status);
+        //print("ROL");
+        //print(rol);
       } else if (res.statusCode == 404) {
-        var data = json.decode(res.body);
-        print(data);
+        //var data = json.decode(res.body);
+        
+        //print(data);
+        
         setState(() {
           status = 404;
         });
-        print("STATUS");
-        print(status);
-        print("ROL");
-        print(rol);
+        //print("STATUS");
+        //print(status);
+        //print("ROL");
+        //print(rol);
       }
     } catch (e) {
       throw Exception('$e');
@@ -250,7 +252,7 @@ class _Login1State extends State<Login1> {
                           );
                         }
                       } catch (e) {
-                        print("Excepción durante el inicio de sesión: $e");
+                        //print("Excepción durante el inicio de sesión: $e");
                       }
                     },
                     style: ButtonStyle(

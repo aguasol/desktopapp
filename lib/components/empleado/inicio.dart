@@ -175,12 +175,12 @@ class _InicioState extends State<Inicio> {
         }).toList();
         for (var i = 0; i < tempProductos.length; i++) {
           listElementos.add(tempProductos[i]);
-          print("-------LISTAAAPRO");
-          print(listElementos);
+         // print("-------LISTAAAPRO");
+         // print(listElementos);
         }
       }
     } catch (e) {
-      print('Error en la solicitud: $e');
+     // print('Error en la solicitud: $e');
       throw Exception('Error en la solicitud: $e');
     }
   }
@@ -207,7 +207,7 @@ class _InicioState extends State<Inicio> {
         }
       }
     } catch (e) {
-      print('Error en la solicitud: $e');
+      //print('Error en la solicitud: $e');
       throw Exception('Error en la solicitud: $e');
     }
   }
@@ -218,26 +218,24 @@ class _InicioState extends State<Inicio> {
           headers: {"Content-type": "application/json"});
       if (res.statusCode == 200) {
         var data = json.decode(res.body);
-        print("${now}");
+       // print("${now}");
         //
-        print("${data['main']['temp']}");
+       // print("${data['main']['temp']}");
         setState(() {
           temperatura = data['main']['temp'] - 273.15;
         });
       }
     } catch (e) {
-      print('Error en la solicitud: $e');
+     // print('Error en la solicitud: $e');
       throw Exception('Error en la solicitud: $e');
     }
   }
 
   //LLAMA A LA FUNCION DE CREADO DE PEDIDO Y DEATALLE DE PEDIDO EN ORDEN
   Future<void> calculoDeSeleccionadosYMontos() async {
-    print(
-        '2) Ingresa a al for que en el que se separan de los elementos elegidos, promos y poductos');
-    print(
-        '   esta es la longitud de la lista de elementos: ${listElementos.length}');
-    print(listElementos);
+    //print('2) Ingresa a al for que en el que se separan de los elementos elegidos, promos y poductos');
+    //print( '   esta es la longitud de la lista de elementos: ${listElementos.length}');
+    //print(listElementos);
 
     for (var i = 0; i < listElementos.length; i++) {
       if (listElementos[i].cantidad.text.isNotEmpty) {
@@ -251,17 +249,14 @@ class _InicioState extends State<Inicio> {
     }
 
     for (var i = 0; i < listSeleccionados.length; i++) {}
-    print(
-        '3) Esto son los elemetos seleccionados: ${listSeleccionados.length}');
-    print(
-        '4) esta es la cantidad de seleccionados que son PRODUCTOS: ${listFinalProductosSeleccionados.length}');
-    print(
-        '5) esta es la cantidad de seleccionados que son PROMOS: ${listPromosSeleccionadas.length}');
+    //print('3) Esto son los elemetos seleccionados: ${listSeleccionados.length}');
+    //print('4) esta es la cantidad de seleccionados que son PRODUCTOS: ${listFinalProductosSeleccionados.length}');
+    //print('5) esta es la cantidad de seleccionados que son PROMOS: ${listPromosSeleccionadas.length}');
 
     for (var i = 0; i < listPromosSeleccionadas.length; i++) {
-      print('-------------------------------------------------');
-      print('FOR PARA LLAMAR A GET PRODUCTOS DE PROMO');
-      print('5.1) este es el valor de i: $i');
+      //print('-------------------------------------------------');
+      //print('FOR PARA LLAMAR A GET PRODUCTOS DE PROMO');
+      //print('5.1) este es el valor de i: $i');
       await getProductoDePromo(
           int.parse(listPromosSeleccionadas[i].cantidad.text),
           listPromosSeleccionadas[i].monto,
@@ -270,17 +265,13 @@ class _InicioState extends State<Inicio> {
           listPromosSeleccionadas[i].id);
     }
 
-    print(
-        '5.5) Luego de hacer el for se actualiza la cantidad de produtos: ${listFinalProductosSeleccionados.length}');
+    print('5.5) Luego de hacer el for se actualiza la cantidad de produtos: ${listFinalProductosSeleccionados.length}');
 
     for (var i = 0; i < listFinalProductosSeleccionados.length; i++) {
-      print('+++++++++++++++++++++');
-      print(
-          '     Esta es la cantidad de producto: ${listFinalProductosSeleccionados[i].cantidadInt}');
-      print(
-          '     Este es el descuento: ${listFinalProductosSeleccionados[i].descuentoDouble}');
-      print(
-          '     Este es el monto total por producto: ${listFinalProductosSeleccionados[i].monto}');
+    //  print('+++++++++++++++++++++');
+    //  print( '     Esta es la cantidad de producto: ${listFinalProductosSeleccionados[i].cantidadInt}');
+    //  print('     Este es el descuento: ${listFinalProductosSeleccionados[i].descuentoDouble}');
+    //  print( '     Este es el monto total por producto: ${listFinalProductosSeleccionados[i].monto}');
       setState(() {
         descuentoTotalPedido +=
             listFinalProductosSeleccionados[i].descuentoDouble;
@@ -293,12 +284,11 @@ class _InicioState extends State<Inicio> {
               .add(listFinalProductosSeleccionados[i]);
         });
       }
-      print('     Este es el monto total: $montoTotalPedido');
-      print('     Este es el descuento total: $descuentoTotalPedido');
+      //print('     Este es el monto total: $montoTotalPedido');
+      //print('     Este es el descuento total: $descuentoTotalPedido');
     }
 
-    print(
-        "     esta es la longitu de prod con desc ${listFinalProductosSeleccionadosConDSCT.length}");
+//    print("     esta es la longitu de prod con desc ${listFinalProductosSeleccionadosConDSCT.length}");
 
     for (var i = 0; i < listFinalProductosSeleccionadosConDSCT.length; i++) {
       var salto = '\n';
@@ -314,7 +304,7 @@ class _InicioState extends State<Inicio> {
         });
       }
     }
-    print('     Esta es la observacion final: $observacionFinal');
+  //  print('     Esta es la observacion final: $observacionFinal');
   }
 
   Future<void> pedidoCancelado() async {
@@ -329,7 +319,7 @@ class _InicioState extends State<Inicio> {
           listElementos[i].observacion = '';
         });
       }
-      print('11.1) Ingreso al set state');
+    //  print('11.1) Ingreso al set state');
       _nombres.clear();
       _apellidos.clear();
       _direccion.clear();
@@ -355,15 +345,15 @@ class _InicioState extends State<Inicio> {
   Future<void> crearClienteNRmPedidoyDetallePedido(empleadoID, tipo) async {
     DateTime tiempoGMTPeru = tiempoActual.subtract(const Duration(hours: 5));
 
-    print('-------------------------------------------------');
-    print('FUNCION QUE ORDENA LOS ENDPOINTS');
+  //  print('-------------------------------------------------');
+  //  print('FUNCION QUE ORDENA LOS ENDPOINTS');
 
     if (_formKey.currentState!.validate()) {
-      print('6) IF que valida que los datos del cliente NR estén llenos');
-      print("6.1) datos personales");
-      print("....6.2 ....ID DEL EMPLEADO");
-      print(empleadoID);
-      print("${_nombres.text} , ${_apellidos.text}");
+    //  print('6) IF que valida que los datos del cliente NR estén llenos');
+    //  print("6.1) datos personales");
+    //  print("....6.2 ....ID DEL EMPLEADO");
+    //  print(empleadoID);
+    //  print("${_nombres.text} , ${_apellidos.text}");
       await createNR(
           empleadoID,
           _nombres.text,
@@ -380,11 +370,11 @@ class _InicioState extends State<Inicio> {
 
     await lastClienteNrID(empleadoID);
     await lastUbi(lastClienteNR);
-    print('7.4) este es el ultimo cliente no registrado: $lastClienteNR');
-    print("7.4.1 ult5ima ubicacion $lastUbic");
-    print('8) creado de pedido');
-    print('8.1) Este es el tiempo GMT: ${tiempoActual.toString()}');
-    print('8.2) Este es el tiempo de peru: ${tiempoGMTPeru.toString()}');
+   // print('7.4) este es el ultimo cliente no registrado: $lastClienteNR');
+   // print("7.4.1 ult5ima ubicacion $lastUbic");
+   // print('8) creado de pedido');
+   // print('8.1) Este es el tiempo GMT: ${tiempoActual.toString()}');
+   // print('8.2) Este es el tiempo de peru: ${tiempoGMTPeru.toString()}');
     await datosCreadoPedido(
         lastClienteNR,
         tiempoGMTPeru.toString(),
@@ -398,16 +388,16 @@ class _InicioState extends State<Inicio> {
     print("10) creando detalles de pedidos");
 
     for (var i = 0; i < listFinalProductosSeleccionados.length; i++) {
-      print('+++++++++++++++++++++');
-      print('10.1) Dentro del FOR para creado de detalle');
-      print(
-          "10.2) longitud de seleccinados: ${listFinalProductosSeleccionados.length} este es i: $i");
-      print(
-          "      esta es el producto ID: ${listFinalProductosSeleccionados[i].id}");
-      print(
-          "      esta es la cantidad de producto: ${listFinalProductosSeleccionados[i].cantidadInt}");
-      print(
-          "      esta es la promocion ID: ${listFinalProductosSeleccionados[i].promoID}");
+     // print('+++++++++++++++++++++');
+     // print('10.1) Dentro del FOR para creado de detalle');
+     // print(
+     //     "10.2) longitud de seleccinados: ${listFinalProductosSeleccionados.length} este es i: $i");
+     // print(
+     //     "      esta es el producto ID: ${listFinalProductosSeleccionados[i].id}");
+     // print(
+     //     "      esta es la cantidad de producto: ${listFinalProductosSeleccionados[i].cantidadInt}");
+     // print(
+     //     "      esta es la promocion ID: ${listFinalProductosSeleccionados[i].promoID}");
 
       await detallePedido(
           lastClienteNR,
@@ -422,14 +412,14 @@ class _InicioState extends State<Inicio> {
   //OBTIENE LOS PRODUCTOS DE UNA PROMOCION QUE FUE ELEGIDA CON DETERMINADA CANTIDAD
   Future<dynamic> getProductoDePromo(
       cantidadProm, montoProd, obsevacionProd, descuento, promoID) async {
-    print('-------------------------------------------------');
-    print('GET PORDUCTOS BY PROMO');
-    print('5.2) Este es el api al que ingresa');
-    print("$apiUrl$apiProductsbyPromos${promoID.toString()}");
-    print('5.3) este es el promoID: ${promoID.toString()}');
-    print('   este es el tipo de variabe: ${promoID.toString().runtimeType}');
-    print('5.4) este es el cantidadProm: $cantidadProm');
-    print('   este es el tipo de variabe: ${cantidadProm.runtimeType}');
+    //print('-------------------------------------------------');
+    //print('GET PORDUCTOS BY PROMO');
+    //print('5.2) Este es el api al que ingresa');
+    //print("$apiUrl$apiProductsbyPromos${promoID.toString()}");
+    //print('5.3) este es el promoID: ${promoID.toString()}');
+    //print('   este es el tipo de variabe: ${promoID.toString().runtimeType}');
+    //print('5.4) este es el cantidadProm: $cantidadProm');
+    //print('   este es el tipo de variabe: ${cantidadProm.runtimeType}');
     var res = await http.get(
       Uri.parse("$apiUrl$apiProductsbyPromos${promoID.toString()}"),
       headers: {"Content-type": "application/json"},
@@ -452,14 +442,14 @@ class _InicioState extends State<Inicio> {
         }).toList();
 
         setState(() {
-          print("5.6) Productos  de Promo contabilizados");
-          print(tempProducto);
+      //    print("5.6) Productos  de Promo contabilizados");
+      //    print(tempProducto);
           listFinalProductosSeleccionados.addAll(tempProducto);
           //listProductos = tempProducto;
         });
       }
     } catch (e) {
-      print('Error en la solicitud: $e');
+      //print('Error en la solicitud: $e');
       throw Exception('Error en la solicitud: $e');
     }
   }
@@ -489,8 +479,8 @@ class _InicioState extends State<Inicio> {
   //CREA EL DETALLE DE PEDIDO
   Future<dynamic> detallePedido(
       clienteNrId, productoId, cantidadInt, promoID) async {
-    print('---------------------------------');
-    print('10.3) DATOS CREADO DE DETALLE PEDIDO');
+    //print('---------------------------------');
+    //print('10.3) DATOS CREADO DE DETALLE PEDIDO');
     await http.post(Uri.parse(apiUrl + apiDetallePedido),
         headers: {"Content-type": "application/json"},
         body: jsonEncode({
@@ -503,10 +493,10 @@ class _InicioState extends State<Inicio> {
 
   //FUNCION QUE OBTIENE EL LAST CLIENTE REGISTRADO
   Future<dynamic> lastClienteNrID(empleadoID) async {
-    print('---------------------------------');
-    print('7.1) LAST CLIENTE NR');
-    print('7.2) este es el api al que ingresa');
-    print(apiUrl + apiLastClienteNR + empleadoID.toString());
+    //print('---------------------------------');
+    //print('7.1) LAST CLIENTE NR');
+    //print('7.2) este es el api al que ingresa');
+    //print(apiUrl + apiLastClienteNR + empleadoID.toString());
     var res = await http.get(
         Uri.parse(apiUrl + apiLastClienteNR + empleadoID.toString()),
         headers: {"Content-type": "application/json"});
@@ -524,10 +514,10 @@ class _InicioState extends State<Inicio> {
   }
 
   Future<dynamic> lastUbi(clienteNRID) async {
-    print('---------------------------------');
-    print('300) LAST UBIC NR');
-    print('7.2) este es el api al que ingresa');
-    print(apiUrl + apiLastUbi + clienteNRID.toString());
+    //print('---------------------------------');
+    //print('300) LAST UBIC NR');
+    //print('7.2) este es el api al que ingresa');
+    //print(apiUrl + apiLastUbi + clienteNRID.toString());
     var res = await http.get(
         Uri.parse(apiUrl + apiLastUbi + clienteNRID.toString()),
         headers: {"Content-type": "application/json"});
@@ -541,7 +531,7 @@ class _InicioState extends State<Inicio> {
         });
       }
     } catch (e) {
-      print('Error en la solicitud: $e');
+      //print('Error en la solicitud: $e');
       throw Exception('Error en la solicitud: $e');
     }
   }
@@ -549,8 +539,8 @@ class _InicioState extends State<Inicio> {
   //CREA EL PEDIDO
   Future<dynamic> datosCreadoPedido(clienteNrId, fecha, montoTotal, descuento,
       tipo, estado, observacionProd, ubicacion_id) async {
-    print('---------------------------------');
-    print('9) DATOS CREADO PEDIDO');
+    //print('---------------------------------');
+    //print('9) DATOS CREADO PEDIDO');
     if (tipo == 'express') {
       montoTotal += 4;
     }
@@ -1498,8 +1488,8 @@ class _InicioState extends State<Inicio> {
                                                                                   ),
                                                                                 ),
                                                                                 onChanged: (value) {
-                                                                                  print('cargo detectado: $value');
-                                                                                  print('tipo ${value.runtimeType}');
+                                                                                //  print('cargo detectado: $value');
+                                                                                //  print('tipo ${value.runtimeType}');
                                                                                   setState(() {
                                                                                     listElementos[index].cargoAutorizador.text = value;
                                                                                   });
@@ -1728,8 +1718,8 @@ class _InicioState extends State<Inicio> {
 
                                                           if (value
                                                               .isNotEmpty) {
-                                                            print(
-                                                                'tipo ${int.parse(value).runtimeType}');
+                                                            //print(
+                                                            //    'tipo ${int.parse(value).runtimeType}');
                                                             setState(() {
                                                               listElementos[
                                                                           index]
@@ -1744,8 +1734,8 @@ class _InicioState extends State<Inicio> {
                                                                   listElementos[
                                                                           index]
                                                                       .precio;
-                                                              print(
-                                                                  'este es el monto: ${listElementos[index].monto}');
+                                                              //print(
+                                                              //    'este es el monto: ${listElementos[index].monto}');
                                                             });
                                                           }
                                                         },
@@ -1791,8 +1781,8 @@ class _InicioState extends State<Inicio> {
                                                                   fontSize: 12),
                                                         ),
                                                         onChanged: (value) {
-                                                          print(
-                                                              "0.1) descuento detectado: $value");
+                                                          //print(
+                                                          //    "0.1) descuento detectado: $value");
                                                           // SETEAR DE LA LISTA MIXTA(PROD Y PROMO)
                                                           listElementos[index]
                                                               .descuento
@@ -1818,8 +1808,8 @@ class _InicioState extends State<Inicio> {
                                                                   '0.2) este es el descuento: ${listElementos[index].descuentoDouble}');
                                                             });
                                                           } else {
-                                                            print(
-                                                                '0.3) no hay descuento');
+                                                            //print(
+                                                            //    '0.3) no hay descuento');
                                                             setState(() {
                                                               listElementos[
                                                                           index]
@@ -1833,8 +1823,8 @@ class _InicioState extends State<Inicio> {
                                                                   listElementos[
                                                                           index]
                                                                       .cantidadInt;
-                                                              print(
-                                                                  '0.4) este es el monto sin descuento: ${listElementos[index].monto}');
+                                                              //print(
+                                                              //    '0.4) este es el monto sin descuento: ${listElementos[index].monto}');
                                                             });
                                                           }
 
@@ -1846,8 +1836,8 @@ class _InicioState extends State<Inicio> {
                                                                   listElementos[
                                                                           index]
                                                                       .descuentoDouble;
-                                                          print(
-                                                              '0.5) este es el monto con descuento: ${listElementos[index].monto}');
+                                                         // print(
+                                                         //     '0.5) este es el monto con descuento: ${listElementos[index].monto}');
                                                         },
                                                         validator: (value) {
                                                           if (value is String) {
@@ -2103,14 +2093,14 @@ class _InicioState extends State<Inicio> {
                                     _latitud.text = '$latitude';
                                     _longitud.text = '$longitude';
                                   });
-                                  print(pickedData.latLong.latitude);
-                                  print(pickedData.latLong.longitude);
-                                  print(pickedData.address);
-                                  print(pickedData.addressName);
-                                  print("-----------------");
-                                  print(pickedData.address['city']);
-                                  print("---OBJETO DIRECCIÓN---");
-                                  print(pickedData.address.values);
+                                  //print(pickedData.latLong.latitude);
+                                  //print(pickedData.latLong.longitude);
+                                  //print(pickedData.address);
+                                  //print(pickedData.addressName);
+                                  //print("-----------------");
+                                  //print(pickedData.address['city']);
+                                  //print("---OBJETO DIRECCIÓN---");
+                                  //print(pickedData.address.values);
                                 },
                               )),
                         ],

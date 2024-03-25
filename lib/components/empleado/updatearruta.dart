@@ -242,6 +242,8 @@ class _UpdateState extends State<Update> {
   @override
   void dispose() {
     _text1.dispose();
+    _scrollController2.dispose();
+    _scrollController3.dispose();
     super.dispose();
   }
 
@@ -787,7 +789,7 @@ class _UpdateState extends State<Update> {
   }
 
   Future<dynamic> getVehiculos() async {
-    print("%%%%%%%%% vehiculos");
+    //print("%%%%%%%%% vehiculos");
     final SharedPreferences empleadoShare =
         await SharedPreferences.getInstance();
     var res = await http.get(
@@ -806,8 +808,8 @@ class _UpdateState extends State<Update> {
         setState(() {
           vehiculos = tempVehiculo;
         });
-        print("----Get vehiculos");
-        print(vehiculos);
+      //  print("----Get vehiculos");
+      //  print(vehiculos);
         return vehiculos;
       }
     } catch (e) {
@@ -845,8 +847,8 @@ class _UpdateState extends State<Update> {
         setState(() {
           conductorget = tempConductor;
         });
-        print("--------------");
-        print(conductorget);
+        //print("--------------");
+        //print(conductorget);
       }
     } catch (e) {
       throw Exception('$e');
@@ -893,17 +895,17 @@ class _UpdateState extends State<Update> {
 
   Future<dynamic> updateStocK(int vehiculoID,int idProducto, int stockMovilConductor) async {
     try {
-      print("(((((((()))))))) VEHICULO ID");
-      print(vehiculoID);
-      print(api + vehiculoProductoStock + vehiculoID.toString()+'/'+idProducto.toString());
+      //print("(((((((()))))))) VEHICULO ID");
+      //print(vehiculoID);
+      //print(api + vehiculoProductoStock + vehiculoID.toString()+'/'+idProducto.toString());
       await http.put(
           Uri.parse(api + vehiculoProductoStock + vehiculoID.toString()+'/'+idProducto.toString()),
           headers: {"Content-type": "application/json"},
           body: jsonEncode({
             "stockproducto":stockMovilConductor
           }));
-      print("datos.........");
-      print(stockMovilConductor);
+   //   print("datos.........");
+   //   print(stockMovilConductor);
     
     } catch (e) {
       throw Exception("$e");
@@ -932,8 +934,8 @@ class _UpdateState extends State<Update> {
         });
         return tempVehiculoProducto;
        
-        print("----VEHICULO PRODUCTOR");
-        print(vehiculoProductosConductor);
+     //   print("----VEHICULO PRODUCTOR");
+     //   print(vehiculoProductosConductor);
       }
     } catch (e) {
       throw Exception("$e");
@@ -2072,13 +2074,13 @@ class _UpdateState extends State<Update> {
                                                                 .length;
                                                         i++) {
                                                       setState(() {
-                                                        print(int.parse(
-                                                            _ruta.text));
-                                                        print("id pedido");
-                                                        print(
-                                                            pedidoSeleccionado[
-                                                                    i]
-                                                                .id);
+                                                        //print(int.parse(
+                                                        //    _ruta.text));
+                                                        //print("id pedido");
+                                                        //print(
+                                                        //    pedidoSeleccionado[
+                                                        //            i]
+                                                        //        .id);
                                                         pedidoSeleccionado[i]
                                                                 .ruta_id =
                                                             int.parse(
