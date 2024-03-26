@@ -893,13 +893,14 @@ class _UpdateState extends State<Update> {
     }
   }
 
-  Future<dynamic> updateStocK(int vehiculoID,int idProducto, int stockMovilConductor) async {
+  Future<dynamic> updateStocK(int empleadoId,int vehiculoID,int idProducto, int stockMovilConductor) async {
     try {
       //print("(((((((()))))))) VEHICULO ID");
       //print(vehiculoID);
       //print(api + vehiculoProductoStock + vehiculoID.toString()+'/'+idProducto.toString());
       await http.put(
-          Uri.parse(api + vehiculoProductoStock + vehiculoID.toString()+'/'+idProducto.toString()),
+          Uri.parse(api + vehiculoProductoStock + vehiculoID.toString()+'/'+idProducto.toString()+'/'+empleadoId.toString()
+),
           headers: {"Content-type": "application/json"},
           body: jsonEncode({
             "stockproducto":stockMovilConductor
@@ -925,7 +926,7 @@ class _UpdateState extends State<Update> {
               id: data['id'],
               producto_id: data['producto_id'],
               vehiculo_id: data['vehiculo_id'],
-              stock: data['stock'],
+              stock: data['stock'] ?? 0,
               stock_movil_conductor: data['stock_movil_conductor'] ?? 0);
         }).toList();
 
@@ -1543,16 +1544,19 @@ class _UpdateState extends State<Update> {
                                                                   TextButton(
                                                                     onPressed:
                                                                         ()async {
+                                                                          final SharedPreferences empleadoShare = await SharedPreferences.getInstance();
+                                                                          final idempleado = empleadoShare.getInt('empleadoID');
+
                                                                       final productoID = mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].producto_id;
                                                                       if(_text1.text!=''){
-                                                                        await updateStocK(vehiculos[index1].id,productoID!, int.parse(_text1.text));
+                                                                        await updateStocK(idempleado!,vehiculos[index1].id,productoID!, int.parse(_text1.text));
                                                                         getVehiculoVehiculoProducto();
                                                                         setState(() {
                                                                           
                                                                         });
                                                                       }
                                                                       else{
-                                                                         await updateStocK(vehiculos[index1].id,productoID!,0);
+                                                                         await updateStocK(idempleado!,vehiculos[index1].id,productoID!,0);
                                                                           getVehiculoVehiculoProducto();
                                                                          setState(() {
                                                                            
