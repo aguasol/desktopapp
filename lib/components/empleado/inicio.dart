@@ -142,6 +142,7 @@ class _InicioState extends State<Inicio> {
   String observacionFinal = '';
   String? tipo = 'normal';
 
+  // GET DROPDOWN
   List<DropdownMenuItem<String>> get dropdownItems {
     return [
       const DropdownMenuItem(
@@ -175,12 +176,12 @@ class _InicioState extends State<Inicio> {
         }).toList();
         for (var i = 0; i < tempProductos.length; i++) {
           listElementos.add(tempProductos[i]);
-         // print("-------LISTAAAPRO");
-         // print(listElementos);
+          // print("-------LISTAAAPRO");
+          // print(listElementos);
         }
       }
     } catch (e) {
-     // print('Error en la solicitud: $e');
+      // print('Error en la solicitud: $e');
       throw Exception('Error en la solicitud: $e');
     }
   }
@@ -218,15 +219,15 @@ class _InicioState extends State<Inicio> {
           headers: {"Content-type": "application/json"});
       if (res.statusCode == 200) {
         var data = json.decode(res.body);
-       // print("${now}");
+        // print("${now}");
         //
-       // print("${data['main']['temp']}");
+        // print("${data['main']['temp']}");
         setState(() {
           temperatura = data['main']['temp'] - 273.15;
         });
       }
     } catch (e) {
-     // print('Error en la solicitud: $e');
+      // print('Error en la solicitud: $e');
       throw Exception('Error en la solicitud: $e');
     }
   }
@@ -265,13 +266,14 @@ class _InicioState extends State<Inicio> {
           listPromosSeleccionadas[i].id);
     }
 
-    print('5.5) Luego de hacer el for se actualiza la cantidad de produtos: ${listFinalProductosSeleccionados.length}');
+    print(
+        '5.5) Luego de hacer el for se actualiza la cantidad de produtos: ${listFinalProductosSeleccionados.length}');
 
     for (var i = 0; i < listFinalProductosSeleccionados.length; i++) {
-    //  print('+++++++++++++++++++++');
-    //  print( '     Esta es la cantidad de producto: ${listFinalProductosSeleccionados[i].cantidadInt}');
-    //  print('     Este es el descuento: ${listFinalProductosSeleccionados[i].descuentoDouble}');
-    //  print( '     Este es el monto total por producto: ${listFinalProductosSeleccionados[i].monto}');
+      //  print('+++++++++++++++++++++');
+      //  print( '     Esta es la cantidad de producto: ${listFinalProductosSeleccionados[i].cantidadInt}');
+      //  print('     Este es el descuento: ${listFinalProductosSeleccionados[i].descuentoDouble}');
+      //  print( '     Este es el monto total por producto: ${listFinalProductosSeleccionados[i].monto}');
       setState(() {
         descuentoTotalPedido +=
             listFinalProductosSeleccionados[i].descuentoDouble;
@@ -304,7 +306,7 @@ class _InicioState extends State<Inicio> {
         });
       }
     }
-  //  print('     Esta es la observacion final: $observacionFinal');
+    //  print('     Esta es la observacion final: $observacionFinal');
   }
 
   Future<void> pedidoCancelado() async {
@@ -319,7 +321,7 @@ class _InicioState extends State<Inicio> {
           listElementos[i].observacion = '';
         });
       }
-    //  print('11.1) Ingreso al set state');
+      //  print('11.1) Ingreso al set state');
       _nombres.clear();
       _apellidos.clear();
       _direccion.clear();
@@ -345,15 +347,15 @@ class _InicioState extends State<Inicio> {
   Future<void> crearClienteNRmPedidoyDetallePedido(empleadoID, tipo) async {
     DateTime tiempoGMTPeru = tiempoActual.subtract(const Duration(hours: 5));
 
-  //  print('-------------------------------------------------');
-  //  print('FUNCION QUE ORDENA LOS ENDPOINTS');
+    //  print('-------------------------------------------------');
+    //  print('FUNCION QUE ORDENA LOS ENDPOINTS');
 
     if (_formKey.currentState!.validate()) {
-    //  print('6) IF que valida que los datos del cliente NR estén llenos');
-    //  print("6.1) datos personales");
-    //  print("....6.2 ....ID DEL EMPLEADO");
-    //  print(empleadoID);
-    //  print("${_nombres.text} , ${_apellidos.text}");
+      //  print('6) IF que valida que los datos del cliente NR estén llenos');
+      //  print("6.1) datos personales");
+      //  print("....6.2 ....ID DEL EMPLEADO");
+      //  print(empleadoID);
+      //  print("${_nombres.text} , ${_apellidos.text}");
       await createNR(
           empleadoID,
           _nombres.text,
@@ -367,46 +369,47 @@ class _InicioState extends State<Inicio> {
           _ruc.text);
       Navigator.pop(context, 'SI');
     }
-
-    await lastClienteNrID(empleadoID);
-    await lastUbi(lastClienteNR);
-   // print('7.4) este es el ultimo cliente no registrado: $lastClienteNR');
-   // print("7.4.1 ult5ima ubicacion $lastUbic");
-   // print('8) creado de pedido');
-   // print('8.1) Este es el tiempo GMT: ${tiempoActual.toString()}');
-   // print('8.2) Este es el tiempo de peru: ${tiempoGMTPeru.toString()}');
-    await datosCreadoPedido(
-        lastClienteNR,
-        tiempoGMTPeru.toString(),
-        montoTotalPedido,
-        descuentoTotalPedido,
-        tipo,
-        "pendiente",
-        observacionFinal,
-        lastUbic);
-
-    print("10) creando detalles de pedidos");
-
-    for (var i = 0; i < listFinalProductosSeleccionados.length; i++) {
-     // print('+++++++++++++++++++++');
-     // print('10.1) Dentro del FOR para creado de detalle');
-     // print(
-     //     "10.2) longitud de seleccinados: ${listFinalProductosSeleccionados.length} este es i: $i");
-     // print(
-     //     "      esta es el producto ID: ${listFinalProductosSeleccionados[i].id}");
-     // print(
-     //     "      esta es la cantidad de producto: ${listFinalProductosSeleccionados[i].cantidadInt}");
-     // print(
-     //     "      esta es la promocion ID: ${listFinalProductosSeleccionados[i].promoID}");
-
-      await detallePedido(
+    if (empleadoID != null) {
+      await lastClienteNrID(empleadoID);
+      await lastUbi(lastClienteNR);
+      // print('7.4) este es el ultimo cliente no registrado: $lastClienteNR');
+      // print("7.4.1 ult5ima ubicacion $lastUbic");
+      // print('8) creado de pedido');
+      // print('8.1) Este es el tiempo GMT: ${tiempoActual.toString()}');
+      // print('8.2) Este es el tiempo de peru: ${tiempoGMTPeru.toString()}');
+      await datosCreadoPedido(
           lastClienteNR,
-          listFinalProductosSeleccionados[i].id,
-          listFinalProductosSeleccionados[i].cantidadInt,
-          listFinalProductosSeleccionados[i].promoID);
-    }
+          tiempoGMTPeru.toString(),
+          montoTotalPedido,
+          descuentoTotalPedido,
+          tipo,
+          "pendiente",
+          observacionFinal,
+          lastUbic);
 
-    await pedidoCancelado();
+      print("10) creando detalles de pedidos");
+
+      for (var i = 0; i < listFinalProductosSeleccionados.length; i++) {
+        // print('+++++++++++++++++++++');
+        // print('10.1) Dentro del FOR para creado de detalle');
+        // print(
+        //     "10.2) longitud de seleccinados: ${listFinalProductosSeleccionados.length} este es i: $i");
+        // print(
+        //     "      esta es el producto ID: ${listFinalProductosSeleccionados[i].id}");
+        // print(
+        //     "      esta es la cantidad de producto: ${listFinalProductosSeleccionados[i].cantidadInt}");
+        // print(
+        //     "      esta es la promocion ID: ${listFinalProductosSeleccionados[i].promoID}");
+
+        await detallePedido(
+            lastClienteNR,
+            listFinalProductosSeleccionados[i].id,
+            listFinalProductosSeleccionados[i].cantidadInt,
+            listFinalProductosSeleccionados[i].promoID);
+      }
+
+      await pedidoCancelado();
+    }
   }
 
   //OBTIENE LOS PRODUCTOS DE UNA PROMOCION QUE FUE ELEGIDA CON DETERMINADA CANTIDAD
@@ -442,8 +445,8 @@ class _InicioState extends State<Inicio> {
         }).toList();
 
         setState(() {
-      //    print("5.6) Productos  de Promo contabilizados");
-      //    print(tempProducto);
+          //    print("5.6) Productos  de Promo contabilizados");
+          //    print(tempProducto);
           listFinalProductosSeleccionados.addAll(tempProducto);
           //listProductos = tempProducto;
         });
@@ -1488,8 +1491,8 @@ class _InicioState extends State<Inicio> {
                                                                                   ),
                                                                                 ),
                                                                                 onChanged: (value) {
-                                                                                //  print('cargo detectado: $value');
-                                                                                //  print('tipo ${value.runtimeType}');
+                                                                                  //  print('cargo detectado: $value');
+                                                                                  //  print('tipo ${value.runtimeType}');
                                                                                   setState(() {
                                                                                     listElementos[index].cargoAutorizador.text = value;
                                                                                   });
@@ -1836,8 +1839,8 @@ class _InicioState extends State<Inicio> {
                                                                   listElementos[
                                                                           index]
                                                                       .descuentoDouble;
-                                                         // print(
-                                                         //     '0.5) este es el monto con descuento: ${listElementos[index].monto}');
+                                                          // print(
+                                                          //     '0.5) este es el monto con descuento: ${listElementos[index].monto}');
                                                         },
                                                         validator: (value) {
                                                           if (value is String) {
@@ -2146,11 +2149,29 @@ class _InicioState extends State<Inicio> {
                                                               montoTotalPedido >=
                                                                   montoMinimo
                                                           ? () async {
+                                                            showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return const AlertDialog(
+                            content: Row(
+                              children: [
+                                CircularProgressIndicator(
+                                  backgroundColor: Colors.green,
+                                ),
+                                SizedBox(width: 20),
+                                Text("Cargando..."),
+                              ],
+                            ),
+                          );
+                        },
+                      );
                                                               print(
                                                                   '1) Se presiona el botón de registar');
                                                               await crearClienteNRmPedidoyDetallePedido(
-                                                                  userProvider.user?.id,
+                                                                  userProvider
+                                                                      .user?.id,
                                                                   tipo);
+                                                                  Navigator.pop(context);
                                                                   
                                                             }
                                                           : null,
