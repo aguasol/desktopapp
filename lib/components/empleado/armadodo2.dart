@@ -23,6 +23,21 @@ import 'package:pdf/pdf.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
 
+class VentasEmpleado {
+  int? costo_entregados;
+  final String pendiente;
+  final String proceso;
+  final String entregado;
+  final String truncado;
+
+  VentasEmpleado(
+      {this.costo_entregados,
+      required this.pendiente,
+      required this.proceso,
+      required this.entregado,
+      required this.truncado});
+}
+
 class Vehiculo {
   final int id;
   final String nombre_modelo;
@@ -157,7 +172,7 @@ class _MarcadorWidgetState extends State<MarcadorWidget> {
       onTap: () {
         setState(() {
           color = Colors.red;
-        //  print("s");
+          //  print("s");
         });
       },
       child: Container(
@@ -194,6 +209,7 @@ class _Armado2State extends State<Armado2> {
   String apiUpdateRuta = '/api/pedidoruta';
   String apiEmpleadoPedidos = '/api/empleadopedido/';
   String apiVehiculos = '/api/vehiculo/';
+  String totalventas = '/api/totalventas_empleado/';
   late int rutaIdLast;
   late io.Socket socket;
   late DateTime fechaparseadas;
@@ -212,6 +228,7 @@ class _Armado2State extends State<Armado2> {
   List<LatLng> seleccionadosUbicaciones = [];
   List<Conductor> obtenerConductor = [];
   List<Vehiculo> obtenerVehiculo = [];
+  VentasEmpleado? ventasempleado;
   int conductorid = 0;
   int vehiculoid = 0;
 
@@ -247,16 +264,17 @@ class _Armado2State extends State<Armado2> {
     getPedidos();
     getConductores();
     getVehiculos();
+    getTotalVentas();
+
     // marcadoresPut();
   }
 
-
-/// MARCA ERROR AQUI.....................................................
+  /// MARCA ERROR AQUI.....................................................
   Future<dynamic> getVehiculos() async {
     SharedPreferences empleadoShare = await SharedPreferences.getInstance();
     try {
-     // print("...............................URL DE GETVEHICULOS");
-     // print(api + apiVehiculos + empleadoShare.getInt('empleadoID').toString());
+      // print("...............................URL DE GETVEHICULOS");
+      // print(api + apiVehiculos + empleadoShare.getInt('empleadoID').toString());
       var res = await http.get(
           Uri.parse(api +
               apiVehiculos +
@@ -286,7 +304,7 @@ class _Armado2State extends State<Armado2> {
   }
 
   Future<dynamic> getEmpleadoPedido(int empleadoid) async {
-   // print("${api}+$apiEmpleadoPedidos+${empleadoid.toString()}");
+    // print("${api}+$apiEmpleadoPedidos+${empleadoid.toString()}");
     var res = await http.get(
         Uri.parse(api + apiEmpleadoPedidos + empleadoid.toString()),
         headers: {"Content-type": "application/json"});
@@ -295,6 +313,7 @@ class _Armado2State extends State<Armado2> {
       List<Empleadopedido> tempEmpleadopedido =
           data.map<Empleadopedido>((data) {
         return Empleadopedido(
+          idruta: data['idruta'],
             npedido: data['npedido'],
             estado: data['estado'],
             tipo: data['tipo'],
@@ -305,7 +324,7 @@ class _Armado2State extends State<Armado2> {
       }).toList();
       setState(() {
         empleadopedido = tempEmpleadopedido;
-      //  print("$tempEmpleadopedido");
+        //  print("$tempEmpleadopedido");
       });
     } catch (e) {
       throw Exception('$e');
@@ -356,12 +375,12 @@ class _Armado2State extends State<Armado2> {
   Future<dynamic> createRuta(
       empleado_id, conductor_id, vehiculo_id, distancia, tiempo) async {
     try {
-   //    print("Create ruta....");
+      //    print("Create ruta....");
       //print("conductor ID");
       //print(conductor_id);
       //print("vehiculo_id");
       //print(vehiculo_id);
-     
+
       DateTime horaactual = DateTime.now();
       String formateDateTime =
           DateFormat('yyyy-MM-dd HH:mm:ss').format(horaactual);
@@ -375,7 +394,7 @@ class _Armado2State extends State<Armado2> {
             "tiempo_ruta": tiempo,
             "fecha_creacion": formateDateTime
           }));
-     // print("Ruta creada");
+      // print("Ruta creada");
     } catch (e) {
       throw Exception("$e");
     }
@@ -403,8 +422,8 @@ class _Armado2State extends State<Armado2> {
           headers: {"Content-type": "application/json"},
           body: jsonEncode({"ruta_id": ruta_id, "estado": estado}));
     }
-   // print("RUTA ACTUALIZADA A ");
-   // print(ruta_id);
+    // print("RUTA ACTUALIZADA A ");
+    // print(ruta_id);
 
     //ALMACENO LA RUTA EN EL PROVIDER PARA ESE CONDUCTOR
     Provider.of<RutaProvider>(context, listen: false).updateUser(ruta_id);
@@ -420,8 +439,8 @@ class _Armado2State extends State<Armado2> {
   }
 
   void getUbicacionSeleccionada() {
-   // print("ubicaciones seleccionadas");
-   // print(seleccionadosUbicaciones);
+    // print("ubicaciones seleccionadas");
+    // print(seleccionadosUbicaciones);
   }
 
 // Función para comparar coordenadas con tolerancia
@@ -435,7 +454,6 @@ class _Armado2State extends State<Armado2> {
     return (valor1 - valor2).abs() < tolerancia;
   }
 
-  
   // FUNCIONES
   void marcadoresPut(tipo) {
     if (tipo == 'agendados') {
@@ -555,13 +573,13 @@ class _Armado2State extends State<Armado2> {
           for (var i = 0; i < pedidosget.length; i++) {
             fechaparseadas = DateTime.parse(pedidosget[i].fecha.toString());
             if (pedidosget[i].estado == 'pendiente') {
-             // print("pendi...");
+              // print("pendi...");
               if (pedidosget[i].tipo == 'normal') {
-               // print("normlllll");
+                // print("normlllll");
                 // SI ES NORMAL
                 if (fechaparseadas.day != now.day) {
-                 // print("no es hoy");
-                 // print(fechaparseadas.day);
+                  // print("no es hoy");
+                  // print(fechaparseadas.day);
 
                   setState(() {
                     LatLng coordGET = LatLng(
@@ -572,8 +590,8 @@ class _Armado2State extends State<Armado2> {
                     pedidosget[i].latitud = coordGET.latitude;
                     pedidosget[i].longitud = coordGET.longitude;
 
-                   // print("--get posss");
-                   // print(coordGET);
+                    // print("--get posss");
+                    // print(coordGET);
                     agendados.add(pedidosget[i]);
                   });
                 }
@@ -673,6 +691,25 @@ class _Armado2State extends State<Armado2> {
                           fontWeight: pw.FontWeight.bold,
                           color: PdfColor.fromInt(Colors.white.value))),
                 ])),
+        pw.Container(
+            width: 200,
+            height: 180,
+            padding: pw.EdgeInsets.all(10),
+            decoration: pw.BoxDecoration(
+                borderRadius: pw.BorderRadius.circular(20),
+                color: PdfColor.fromInt(Colors.teal.value)),
+            child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text(
+                    "MONTO ENTREGADOS: s/.${ventasempleado?.costo_entregados}.00",
+                  ),
+                  pw.Text("ESTADO DE PEDIDOS"),
+                  pw.Text("Pendiente: ${ventasempleado?.pendiente}"),
+                  pw.Text("Proceso: ${ventasempleado?.proceso}"),
+                  pw.Text("Entregado: ${ventasempleado?.entregado}"),
+                  pw.Text("Truncado: ${ventasempleado?.truncado}"),
+                ])),
         //ESPACIO
         pw.SizedBox(height: 30),
 
@@ -768,9 +805,9 @@ class _Armado2State extends State<Armado2> {
 
     socket.on('nuevoPedido', (data) {
       if (data['tipo'] == 'express') {
-       // _showNotification(data['tipo']);
+        // _showNotification(data['tipo']);
       } else {
-      //  _showNotification(data['tipo']);
+        //  _showNotification(data['tipo']);
       }
     });
 
@@ -787,20 +824,21 @@ class _Armado2State extends State<Armado2> {
     });
 
     socket.on('enviandoCoordenadas', (data) {
-     // print("Conductor transmite:");
-     // print(data);
+      // print("Conductor transmite:");
+      // print(data);
       setState(() {
         currentLcocation = LatLng(data['x'], data['y']);
       });
     });
 
-    socket.on('vista', (data)  {
-     // print("...recibiendo..");
-     // //getPedidos();
-     // print(data);
+    socket.on('vista', (data) {
+      // print("...recibiendo..");
+      // //getPedidos();
+      // print(data);
     });
   }
- void _showNotification(String tipo) async {
+
+  void _showNotification(String tipo) async {
     if (tipo == 'express') {
       String imagePath = await getImageBytes('lib/imagenes/amberfinal.png');
       NotificationMessage message = NotificationMessage.fromPluginTemplate(
@@ -826,10 +864,37 @@ class _Armado2State extends State<Armado2> {
         largeImage: imagePath,
       );
       _winNotifyPlugin.showNotificationPluginTemplate(message);
-
     }
- }
+  }
 
+  Future<void> getTotalVentas() async {
+    SharedPreferences empleadoShare = await SharedPreferences.getInstance();
+
+    var res = await http.get(
+      Uri.parse(
+          api + totalventas + empleadoShare.getInt('empleadoID').toString()),
+      headers: {"Content-type": "application/json"},
+    );
+
+    try {
+      var data = json.decode(res.body);
+
+      // Crear una instancia de VentasEmpleado directamente desde el objeto JSON
+      VentasEmpleado ventasEmpleado = VentasEmpleado(
+        costo_entregados: data['costo_entregados'] ?? 0,
+        pendiente: data['pendiente'] ?? "",
+        proceso: data['proceso'] ?? "",
+        entregado: data['entregados'] ?? "",
+        truncado: data['truncados'] ?? "",
+      );
+
+      setState(() {
+        ventasempleado = ventasEmpleado;
+      });
+    } catch (e) {
+      throw Exception("$e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -920,8 +985,8 @@ class _Armado2State extends State<Armado2> {
                                             setState(() {
                                               vehiculoid = vehiculos[index].id;
                                             });
-                                           // print("---%%%% vehiculo id");
-                                           // print(vehiculoid);
+                                            // print("---%%%% vehiculo id");
+                                            // print(vehiculoid);
                                           }
                                         });
                                       },
@@ -1633,7 +1698,7 @@ class _Armado2State extends State<Armado2> {
                                             },
                                           );
 
-                                       //   print(obtenerConductor);
+                                          //   print(obtenerConductor);
                                           await crearobtenerYactualizarRuta(
                                             userProvider.user?.id,
                                             conductorid,
@@ -1673,7 +1738,7 @@ class _Armado2State extends State<Armado2> {
 
                                           Navigator.pop(context);
                                           setState(() {
-                                           // getPedidos();
+                                            // getPedidos();
                                           });
                                         },
                                         style: ButtonStyle(
