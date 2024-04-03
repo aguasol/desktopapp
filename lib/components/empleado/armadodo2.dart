@@ -692,8 +692,8 @@ class _Armado2State extends State<Armado2> {
                           color: PdfColor.fromInt(Colors.white.value))),
                 ])),
         pw.Container(
-            width: 200,
-            height: 180,
+            width: 250,
+            height: 120,
             padding: pw.EdgeInsets.all(10),
             decoration: pw.BoxDecoration(
                 borderRadius: pw.BorderRadius.circular(20),
@@ -702,13 +702,30 @@ class _Armado2State extends State<Armado2> {
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
                   pw.Text(
-                    "MONTO ENTREGADOS: s/.${ventasempleado?.costo_entregados}.00",
-                  ),
-                  pw.Text("ESTADO DE PEDIDOS"),
-                  pw.Text("Pendiente: ${ventasempleado?.pendiente}"),
-                  pw.Text("Proceso: ${ventasempleado?.proceso}"),
-                  pw.Text("Entregado: ${ventasempleado?.entregado}"),
-                  pw.Text("Truncado: ${ventasempleado?.truncado}"),
+                    "MONTO ENTREGADOS: S/.${ventasempleado?.costo_entregados}.00",
+                      style: pw.TextStyle(
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColor.fromInt(Colors.purple.value))),
+                  pw.Text("ESTADO DE PEDIDOS",
+                      style: pw.TextStyle(
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColor.fromInt(Colors.white.value))),
+                  pw.Text("Pendiente: ${ventasempleado?.pendiente}",
+                      style: pw.TextStyle(
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColor.fromInt(Colors.white.value))),
+                  pw.Text("Proceso: ${ventasempleado?.proceso}",
+                      style: pw.TextStyle(
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColor.fromInt(Colors.white.value))),
+                  pw.Text("Entregado: ${ventasempleado?.entregado}",
+                      style: pw.TextStyle(
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColor.fromInt(Colors.white.value))),
+                  pw.Text("Truncado: ${ventasempleado?.truncado}",
+                      style: pw.TextStyle(
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColor.fromInt(Colors.white.value))),
                 ])),
         //ESPACIO
         pw.SizedBox(height: 30),
