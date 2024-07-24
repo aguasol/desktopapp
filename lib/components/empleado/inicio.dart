@@ -132,6 +132,7 @@ class _InicioState extends State<Inicio> {
   String apiProductoPromocion = '/api/prod_prom';
   String apiDetallePedido = '/api/detallepedido';
   String apiLastClienteNR = '/api/last_clientenr/';
+  String apiUpdateRelacionUbicacion = '/api/updateZonaTrabajo/';
   DateTime tiempoActual = DateTime.now();
   double montoMinimo = 10;
 
@@ -176,8 +177,8 @@ class _InicioState extends State<Inicio> {
         }).toList();
         for (var i = 0; i < tempProductos.length; i++) {
           listElementos.add(tempProductos[i]);
-          // print("-------LISTAAAPRO");
-          // print(listElementos);
+          print("-------LISTAAAPRO");
+          print(listElementos);
         }
       }
     } catch (e) {
@@ -347,15 +348,15 @@ class _InicioState extends State<Inicio> {
   Future<void> crearClienteNRmPedidoyDetallePedido(empleadoID, tipo) async {
     DateTime tiempoGMTPeru = tiempoActual.subtract(const Duration(hours: 5));
 
-    //  print('-------------------------------------------------');
-    //  print('FUNCION QUE ORDENA LOS ENDPOINTS');
+    //print('-------------------------------------------------');
+    //print('FUNCION QUE ORDENA LOS ENDPOINTS');
 
     if (_formKey.currentState!.validate()) {
-      //  print('6) IF que valida que los datos del cliente NR estén llenos');
-      //  print("6.1) datos personales");
-      //  print("....6.2 ....ID DEL EMPLEADO");
-      //  print(empleadoID);
-      //  print("${_nombres.text} , ${_apellidos.text}");
+      //print('6) IF que valida que los datos del cliente NR estén llenos');
+      //print("6.1) datos personales");
+      //print("....6.2 ....ID DEL EMPLEADO");
+      //print(empleadoID);
+      //print("${_nombres.text} , ${_apellidos.text}");
       await createNR(
           empleadoID,
           _nombres.text,
@@ -370,10 +371,14 @@ class _InicioState extends State<Inicio> {
       Navigator.pop(context, 'SI');
     }
     if (empleadoID != null) {
-      await lastClienteNrID(empleadoID);
-      await lastUbi(lastClienteNR);
-      // print('7.4) este es el ultimo cliente no registrado: $lastClienteNR');
-      // print("7.4.1 ult5ima ubicacion $lastUbic");
+      await lastClienteNrID(empleadoID); //Devuelve el ID del ultimo clienteNR
+      await lastUbi(lastClienteNR,
+          empleadoID); //Obtengo el ID de la relaciones.ubicacion, no tiene zona de trabajo
+      //print('7.4) este es el ultimo cliente no registrado: $lastClienteNR');
+      //print("7.4.1 ult5ima ubicacion $lastUbic");
+      //print("Coordenadas");
+      //print(_latitud.text);
+      //print(_longitud.text);
       // print('8) creado de pedido');
       // print('8.1) Este es el tiempo GMT: ${tiempoActual.toString()}');
       // print('8.2) Este es el tiempo de peru: ${tiempoGMTPeru.toString()}');
@@ -385,7 +390,7 @@ class _InicioState extends State<Inicio> {
           tipo,
           "pendiente",
           observacionFinal,
-          lastUbic);
+          lastUbic); //id_ubicacion=172
 
       print("10) creando detalles de pedidos");
 
@@ -496,10 +501,10 @@ class _InicioState extends State<Inicio> {
 
   //FUNCION QUE OBTIENE EL LAST CLIENTE REGISTRADO
   Future<dynamic> lastClienteNrID(empleadoID) async {
-    //print('---------------------------------');
-    //print('7.1) LAST CLIENTE NR');
-    //print('7.2) este es el api al que ingresa');
-    //print(apiUrl + apiLastClienteNR + empleadoID.toString());
+    print('---------------------------------');
+    print('7.1) LAST CLIENTE NR');
+    print('7.2) este es el api al que ingresa');
+    print(apiUrl + apiLastClienteNR + empleadoID.toString());
     var res = await http.get(
         Uri.parse(apiUrl + apiLastClienteNR + empleadoID.toString()),
         headers: {"Content-type": "application/json"});
@@ -516,11 +521,23 @@ class _InicioState extends State<Inicio> {
     }
   }
 
-  Future<dynamic> lastUbi(clienteNRID) async {
-    //print('---------------------------------');
-    //print('300) LAST UBIC NR');
-    //print('7.2) este es el api al que ingresa');
-    //print(apiUrl + apiLastUbi + clienteNRID.toString());
+  Future<dynamic> UpdateRelacionUbicacion(
+      empleadoID, idRelacionUbicacion) async {
+    await http.put(
+      Uri.parse(apiUrl +
+          apiUpdateRelacionUbicacion +
+          empleadoID.toString() +
+          '/' +
+          idRelacionUbicacion.toString()),
+      headers: {"Content-type": "application/json"},
+    );
+  }
+
+  Future<dynamic> lastUbi(clienteNRID, empleadoID) async {
+    print('---------------------------------');
+    print('300) LAST UBIC NR');
+    print('7.2) este es el api al que ingresa');
+    print(apiUrl + apiLastUbi + clienteNRID.toString());
     var res = await http.get(
         Uri.parse(apiUrl + apiLastUbi + clienteNRID.toString()),
         headers: {"Content-type": "application/json"});
@@ -531,10 +548,14 @@ class _InicioState extends State<Inicio> {
           lastUbic = data['id'];
           print("dentroo de lastubic");
           print(data['id']);
+          print(data['latitud']);
+          print(data['longitud']);
+          print(data['zona_trabajo_id']);
         });
+        await UpdateRelacionUbicacion(empleadoID, data['id']);
       }
     } catch (e) {
-      //print('Error en la solicitud: $e');
+      print('Error en la solicitud: $e');
       throw Exception('Error en la solicitud: $e');
     }
   }
@@ -2149,30 +2170,38 @@ class _InicioState extends State<Inicio> {
                                                               montoTotalPedido >=
                                                                   montoMinimo
                                                           ? () async {
-                                                            showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return const AlertDialog(
-                            content: Row(
-                              children: [
-                                CircularProgressIndicator(
-                                  backgroundColor: Colors.green,
-                                ),
-                                SizedBox(width: 20),
-                                Text("Cargando..."),
-                              ],
-                            ),
-                          );
-                        },
-                      );
+                                                              showDialog(
+                                                                context:
+                                                                    context,
+                                                                builder:
+                                                                    (BuildContext
+                                                                        context) {
+                                                                  return const AlertDialog(
+                                                                    content:
+                                                                        Row(
+                                                                      children: [
+                                                                        CircularProgressIndicator(
+                                                                          backgroundColor:
+                                                                              Colors.green,
+                                                                        ),
+                                                                        SizedBox(
+                                                                            width:
+                                                                                20),
+                                                                        Text(
+                                                                            "Cargando..."),
+                                                                      ],
+                                                                    ),
+                                                                  );
+                                                                },
+                                                              );
                                                               print(
                                                                   '1) Se presiona el botón de registar');
                                                               await crearClienteNRmPedidoyDetallePedido(
                                                                   userProvider
                                                                       .user?.id,
                                                                   tipo);
-                                                                  Navigator.pop(context);
-                                                                  
+                                                              Navigator.pop(
+                                                                  context);
                                                             }
                                                           : null,
                                                   child: const Text('SI'),

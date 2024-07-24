@@ -313,7 +313,7 @@ class _Armado2State extends State<Armado2> {
       List<Empleadopedido> tempEmpleadopedido =
           data.map<Empleadopedido>((data) {
         return Empleadopedido(
-          idruta: data['idruta'],
+            idruta: data['idruta'],
             npedido: data['npedido'],
             estado: data['estado'],
             tipo: data['tipo'],
@@ -347,7 +347,12 @@ class _Armado2State extends State<Armado2> {
 
   Future<dynamic> getConductores() async {
     try {
-      var res = await http.get(Uri.parse(api + conductores),
+      SharedPreferences empleadoShare = await SharedPreferences.getInstance();
+      var empleadoIDs = empleadoShare.getInt('empleadoID');
+      print("El empleado traido es");
+      print(empleadoIDs);
+      var res = await http.get(
+          Uri.parse(api + conductores + '/' + empleadoIDs.toString()),
           headers: {"Content-type": "application/json"});
 
       if (res.statusCode == 200) {
@@ -545,7 +550,11 @@ class _Armado2State extends State<Armado2> {
     try {
       print("---------dentro ..........................get pdeidos");
       print(apipedidos);
-      var res = await http.get(Uri.parse(api + apipedidos),
+      SharedPreferences empleadoShare = await SharedPreferences.getInstance();
+
+      var empleadoIDs = empleadoShare.getInt('empleadoID');
+      var res = await http.get(
+          Uri.parse(api + apipedidos + '/' + empleadoIDs.toString()),
           headers: {"Content-type": "application/json"});
       if (res.statusCode == 200) {
         var data = json.decode(res.body);
@@ -702,7 +711,7 @@ class _Armado2State extends State<Armado2> {
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
                   pw.Text(
-                    "MONTO ENTREGADOS: S/.${ventasempleado?.costo_entregados}.00",
+                      "MONTO ENTREGADOS: S/.${ventasempleado?.costo_entregados}.00",
                       style: pw.TextStyle(
                           fontWeight: pw.FontWeight.bold,
                           color: PdfColor.fromInt(Colors.purple.value))),

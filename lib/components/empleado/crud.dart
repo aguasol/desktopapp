@@ -105,6 +105,9 @@ class _CrudState extends State<Crud> {
   String apiUrl = dotenv.env['API_URL'] ?? '';
   String apiEmpleado = '/api/user_empleado';
   String apiConductor = '/api/user_conductor';
+  String apiConductorAdmin = '/api/conductor_admin';
+
+  ///api/conductor_admin
   String apiVehiculo = '/api/vehiculo';
   String apiVehiculoAdmin = '/api/vehiculoadmin/';
   late int status = 0;
@@ -119,17 +122,19 @@ class _CrudState extends State<Crud> {
   // Formato para obtener el nombre del mes
   final monthFormat = DateFormat('MMMM');
   // Formato para obtener el nombre del mes
+  int idAdminConductor = 0;
 
   // Obtener el nombre del mes
 
   @override
   void initState() {
     super.initState();
-    getTemperature();
-    getEmpleado();
-    getConductores();
     final userProvider = context.read<UserProvider>();
     final idadmin = userProvider.user?.id;
+    idAdminConductor = idadmin!;
+    getTemperature();
+    getEmpleado(idadmin);
+    getConductores(idadmin);
     getVehiculo(idadmin);
   }
 
@@ -203,8 +208,8 @@ class _CrudState extends State<Crud> {
 
       // Formatear la fecha como una cadena en el formato deseado (por ejemplo, 'yyyy-MM-dd')
       String fechaFormateada = DateFormat('yyyy-MM-dd').format(fechaNacimiento);
-     // print("fechja");
-     // print(fechaFormateada);
+      // print("fechja");
+      // print(fechaFormateada);
       var res = await http.post(Uri.parse(apiUrl + apiEmpleado),
           headers: {"Content-type": "application/json"},
           body: jsonEncode({
@@ -233,9 +238,9 @@ class _CrudState extends State<Crud> {
     }
   }
 
-  Future<dynamic> getEmpleado() async {
+  Future<dynamic> getEmpleado(idadmin) async {
     var res = await http.get(
-      Uri.parse(apiUrl + apiEmpleado),
+      Uri.parse(apiUrl + apiEmpleado + '/' + idadmin.toString()),
       headers: {"Content-type": "application/json"},
     );
     try {
@@ -275,7 +280,7 @@ class _CrudState extends State<Crud> {
   Future<dynamic> createConductor(nombre, apellidos, dni, fecha, usuario,
       contrasena, email, idadmin) async {
     try {
-    //  print("creando conduc");
+      //  print("creando conduc");
       DateTime fechaNacimiento = DateFormat('d/M/yyyy').parse(fecha);
 
       // Formatear la fecha como una cadena en el formato deseado (por ejemplo, 'yyyy-MM-dd')
@@ -310,9 +315,12 @@ class _CrudState extends State<Crud> {
     }
   }
 
-  Future<dynamic> getConductores() async {
-    var res = await http.get(Uri.parse(apiUrl + apiConductor),
+  Future<dynamic> getConductores(idadmin) async {
+    var res = await http.get(
+        Uri.parse(apiUrl + apiConductorAdmin + '/' + idadmin.toString()),
         headers: {"Content-type": "application/json"});
+    print("Entra a la funcion de aqui ------------");
+    print(apiUrl + apiConductorAdmin + '/' + idadmin.toString());
     try {
       var data = json.decode(res.body);
       List<Conductor> tempConductor = data.map<Conductor>((data) {
@@ -355,7 +363,7 @@ class _CrudState extends State<Crud> {
         var data = json.decode(res.body);
 
         //
-     //   print("${data['main']['temp']}");
+        //   print("${data['main']['temp']}");
         setState(() {
           temperatura = data['main']['temp'] - 273.15;
         });
@@ -688,10 +696,9 @@ class _CrudState extends State<Crud> {
                                           );
                                           _nombremodelo.clear();
                                           _placa.clear();
-                                          setState(() {
-                                            
-                                          });
-                                          await getVehiculo(userProvider.user?.id);
+                                          setState(() {});
+                                          await getVehiculo(
+                                              userProvider.user?.id);
                                         }
                                       },
                                       style: ButtonStyle(
@@ -782,7 +789,7 @@ class _CrudState extends State<Crud> {
                                     _email.clear();
                                     //_formKey.currentState!.reset();
                                     setState(() {});
-                                    await getEmpleado();
+                                    await getEmpleado(idAdminConductor);
                                   } else if (status == 409) {
                                     showDialog(
                                       context: context,
@@ -829,7 +836,7 @@ class _CrudState extends State<Crud> {
                           margin: const EdgeInsets.only(top: 20),
                           child: ElevatedButton(
                             onPressed: () async {
-                            //  print("asdfasdf");
+                              //  print("asdfasdf");
                               if (_formKey.currentState!.validate()) {
                                 showDialog(
                                   context: context,
@@ -847,7 +854,7 @@ class _CrudState extends State<Crud> {
                                     );
                                   },
                                 );
-                              //  print(_fechanacimiento.text);
+                                //  print(_fechanacimiento.text);
                                 try {
                                   await createConductor(
                                       _nombre.text,
@@ -861,7 +868,7 @@ class _CrudState extends State<Crud> {
                                   Navigator.of(context).pop();
 
                                   if (status == 200) {
-                                //    print("200asdf");
+                                    //    print("200asdf");
                                     showDialog(
                                       context: context,
                                       builder: (BuildContext context) {
@@ -896,7 +903,7 @@ class _CrudState extends State<Crud> {
                                     _email.clear();
                                     //_formKey.currentState!.reset();
                                     setState(() {});
-                                    await getConductores();
+                                    await getConductores(idAdminConductor);
                                   } else if (status == 409) {
                                     showDialog(
                                       context: context,
@@ -1025,7 +1032,7 @@ class _CrudState extends State<Crud> {
                                         await deleteEmpleado(
                                             empleados[index].usuario_id);
                                         setState(() {});
-                                        await getEmpleado();
+                                        await getEmpleado(idAdminConductor);
                                       },
                                       style: ButtonStyle(
                                           backgroundColor:
@@ -1136,7 +1143,7 @@ class _CrudState extends State<Crud> {
                                         await deleteConductor(
                                             conductores[index].usuario_id);
                                         setState(() {});
-                                        await getConductores();
+                                        await getConductores(idAdminConductor);
                                       },
                                       style: ButtonStyle(
                                           backgroundColor:

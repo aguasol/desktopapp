@@ -285,11 +285,15 @@ class _UpdateState extends State<Update> {
 
     List<Pedido> iterarPedido = [];
     SharedPreferences empleadoShare = await SharedPreferences.getInstance();
+    print("SHARE DE GET PEDIDOS X CONDUCTOR");
+    print(empleadoShare.getInt('empleadoID'));
     for (var k = 0; k < conductorget.length; k++) {
+      print("ESTOY ENTRANDO A LA LIST DE PEDIDOS TEMP");
+      print(conductorget[k].id);
       List<Pedido> pedidostemp =
           await obtenerPedidosPorConductor(conductorget[k].id);
       print('pedido por conductor $k');
-
+      print(pedidostemp);
       print("---------");
       setState(() {
         mapaConductorXPedido[conductorget[k]] = pedidostemp;
@@ -297,6 +301,8 @@ class _UpdateState extends State<Update> {
       });
       List<LatLng> puntosxconductor = [];
       int count = 1;
+      print(iterarPedido);
+      print("ENTRANDO AL MAPA CONDUCTOR X PEDIDO SOLUCION FINAL");
       print(mapaConductorXPedido[conductorget[k]]);
       for (var i = 0; i < iterarPedido.length; i++) {
         puntosxconductor.add(LatLng(
@@ -506,7 +512,10 @@ class _UpdateState extends State<Update> {
 
   Future<dynamic> getPedidos() async {
     try {
-      var res = await http.get(Uri.parse(api + apipedidos),
+      SharedPreferences empleadoShare = await SharedPreferences.getInstance();
+      var empleadoIDs = empleadoShare.getInt('empleadoID');
+      var res = await http.get(
+          Uri.parse(api + apipedidos + '/' + empleadoIDs.toString()),
           headers: {"Content-type": "application/json"});
       if (res.statusCode == 200) {
         var data = json.decode(res.body);
@@ -808,8 +817,8 @@ class _UpdateState extends State<Update> {
         setState(() {
           vehiculos = tempVehiculo;
         });
-      //  print("----Get vehiculos");
-      //  print(vehiculos);
+        //  print("----Get vehiculos");
+        //  print(vehiculos);
         return vehiculos;
       }
     } catch (e) {
@@ -829,14 +838,23 @@ class _UpdateState extends State<Update> {
 
   Future<dynamic> getConductores() async {
     try {
-      var res = await http.get(Uri.parse(api + conductoresRuta),
+      final SharedPreferences empleadoShare =
+          await SharedPreferences.getInstance();
+      var res = await http.get(
+          Uri.parse(api +
+              conductoresRuta +
+              '/' +
+              empleadoShare.getInt('empleadoID').toString()),
           headers: {"Content-type": "application/json"});
+      print(res.statusCode);
 
       if (res.statusCode == 200) {
+        print("Entro sin Problemas ");
         var data = json.decode(res.body);
+        print(data);
         List<Conductor> tempConductor = data.map<Conductor>((data) {
           return Conductor(
-              id: data['id'],
+              id: data['conductor_id'],
               nombres: data['nombres'],
               apellidos: data['apellidos'],
               licencia: data['licencia'],
@@ -844,9 +862,12 @@ class _UpdateState extends State<Update> {
               fecha_nacimiento: data['fecha_nacimiento'],
               ruta: data['ruta']);
         }).toList();
+        print(tempConductor);
         setState(() {
           conductorget = tempConductor;
         });
+        print("LISTA DE CONDUCTORES");
+        print(conductorget[0]);
         //print("--------------");
         //print(conductorget);
       }
@@ -859,6 +880,8 @@ class _UpdateState extends State<Update> {
     print("-{------------}");
     final SharedPreferences empleadoShare =
         await SharedPreferences.getInstance();
+    print("POSIBLE ERROR CON SHARE");
+    print(empleadoShare.getInt('empleadoID'));
     var res = await http.get(
       Uri.parse(api +
           pedidosConductor +
@@ -893,21 +916,24 @@ class _UpdateState extends State<Update> {
     }
   }
 
-  Future<dynamic> updateStocK(int empleadoId,int vehiculoID,int idProducto, int stockMovilConductor) async {
+  Future<dynamic> updateStocK(int empleadoId, int vehiculoID, int idProducto,
+      int stockMovilConductor) async {
     try {
       //print("(((((((()))))))) VEHICULO ID");
       //print(vehiculoID);
       //print(api + vehiculoProductoStock + vehiculoID.toString()+'/'+idProducto.toString());
       await http.put(
-          Uri.parse(api + vehiculoProductoStock + vehiculoID.toString()+'/'+idProducto.toString()+'/'+empleadoId.toString()
-),
+          Uri.parse(api +
+              vehiculoProductoStock +
+              vehiculoID.toString() +
+              '/' +
+              idProducto.toString() +
+              '/' +
+              empleadoId.toString()),
           headers: {"Content-type": "application/json"},
-          body: jsonEncode({
-            "stockproducto":stockMovilConductor
-          }));
-   //   print("datos.........");
-   //   print(stockMovilConductor);
-    
+          body: jsonEncode({"stockproducto": stockMovilConductor}));
+      //   print("datos.........");
+      //   print(stockMovilConductor);
     } catch (e) {
       throw Exception("$e");
     }
@@ -930,13 +956,13 @@ class _UpdateState extends State<Update> {
               stock_movil_conductor: data['stock_movil_conductor'] ?? 0);
         }).toList();
 
-         setState(() {
+        setState(() {
           vehiculoProductosConductor = tempVehiculoProducto;
         });
         return tempVehiculoProducto;
-       
-     //   print("----VEHICULO PRODUCTOR");
-     //   print(vehiculoProductosConductor);
+
+        //   print("----VEHICULO PRODUCTOR");
+        //   print(vehiculoProductosConductor);
       }
     } catch (e) {
       throw Exception("$e");
@@ -1348,7 +1374,7 @@ class _UpdateState extends State<Update> {
                                                   ),
                                             ),
                                           ),
-                                        /*  Container(
+                                          /*  Container(
                                             height: 80,
                                             width: 80,
                                             decoration: BoxDecoration(
@@ -1476,19 +1502,37 @@ class _UpdateState extends State<Update> {
                                                           .spaceBetween,
                                                   children: [
                                                     Text(
-                                                        "ID: ${mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].id}",style: TextStyle(color: const Color.fromARGB(255, 1, 71, 64),fontWeight:FontWeight.bold)),
+                                                        "ID: ${mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].id}",
+                                                        style: TextStyle(
+                                                            color: const Color
+                                                                .fromARGB(
+                                                                255, 1, 71, 64),
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold)),
                                                     Text(
-                                                        "Producto N° ${mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].producto_id}",style: TextStyle(
-                                                          color: Colors.orange,fontWeight: FontWeight.bold
-                                                        ),),
+                                                      "Producto N° ${mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].producto_id}",
+                                                      style: TextStyle(
+                                                          color: Colors.orange,
+                                                          fontWeight:
+                                                              FontWeight.bold),
+                                                    ),
                                                     Text(
-                                                        "STOCK: ${mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].stock}",style: TextStyle(
-                                                          fontWeight: FontWeight.bold,color: Colors.red
-                                                        ),),
+                                                      "STOCK: ${mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].stock}",
+                                                      style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color: Colors.red),
+                                                    ),
                                                     Text(
-                                                        "Stock Vehículo: ${mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].stock_movil_conductor}",style: TextStyle(
-                                                          fontWeight: FontWeight.bold,color: const Color.fromARGB(255, 16, 47, 72)
-                                                        ),),
+                                                      "Stock Vehículo: ${mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].stock_movil_conductor}",
+                                                      style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color: const Color
+                                                              .fromARGB(
+                                                              255, 16, 47, 72)),
+                                                    ),
                                                     IconButton(
                                                         onPressed: () {
                                                           print(
@@ -1531,9 +1575,6 @@ class _UpdateState extends State<Update> {
                                                                   TextButton(
                                                                       onPressed:
                                                                           () {
-                                                                        
-                                                                       
-
                                                                         Navigator.of(context)
                                                                             .pop();
                                                                       },
@@ -1543,29 +1584,43 @@ class _UpdateState extends State<Update> {
                                                                   /// BOTON APROBAR
                                                                   TextButton(
                                                                     onPressed:
-                                                                        ()async {
-                                                                          final SharedPreferences empleadoShare = await SharedPreferences.getInstance();
-                                                                          final idempleado = empleadoShare.getInt('empleadoID');
-
-                                                                      final productoID = mapaVehiculoXVehiculoProducto[vehiculos[index1]]?[index2].producto_id;
-                                                                      if(_text1.text!=''){
-                                                                        await updateStocK(idempleado!,vehiculos[index1].id,productoID!, int.parse(_text1.text));
+                                                                        () async {
+                                                                      final SharedPreferences
+                                                                          empleadoShare =
+                                                                          await SharedPreferences
+                                                                              .getInstance();
+                                                                      final idempleado =
+                                                                          empleadoShare
+                                                                              .getInt('empleadoID');
+                                                                      print(
+                                                                          "EMPLEADO SHARE ---->>>>>");
+                                                                      print(
+                                                                          idempleado);
+                                                                      final productoID = mapaVehiculoXVehiculoProducto[vehiculos[index1]]
+                                                                              ?[
+                                                                              index2]
+                                                                          .producto_id;
+                                                                      if (_text1
+                                                                              .text !=
+                                                                          '') {
+                                                                        await updateStocK(
+                                                                            idempleado!,
+                                                                            vehiculos[index1].id,
+                                                                            productoID!,
+                                                                            int.parse(_text1.text));
                                                                         getVehiculoVehiculoProducto();
-                                                                        setState(() {
-                                                                          
-                                                                        });
+                                                                        setState(
+                                                                            () {});
+                                                                      } else {
+                                                                        await updateStocK(
+                                                                            idempleado!,
+                                                                            vehiculos[index1].id,
+                                                                            productoID!,
+                                                                            0);
+                                                                        getVehiculoVehiculoProducto();
+                                                                        setState(
+                                                                            () {});
                                                                       }
-                                                                      else{
-                                                                         await updateStocK(idempleado!,vehiculos[index1].id,productoID!,0);
-                                                                          getVehiculoVehiculoProducto();
-                                                                         setState(() {
-                                                                           
-                                                                         });
-                                                                      }
-
-                                                                     
-
-
 
                                                                       /*
 
@@ -1616,10 +1671,11 @@ class _UpdateState extends State<Update> {
                                                           );
                                                         },
                                                         icon: Icon(Icons.edit,
-                                                            color: Colors.pink)),
-                                                    
+                                                            color:
+                                                                Colors.pink)),
+
                                                     // CANCELAR
-                                                   /* IconButton(onPressed: (){
+                                                    /* IconButton(onPressed: (){
                                                       print(
                                                               "dentro del CANCELAR");
                                                           showDialog<void>(
@@ -2071,7 +2127,8 @@ class _UpdateState extends State<Update> {
                                                         );
                                                       },
                                                     );
-
+                                                    print(
+                                                        "Entrando a LA ACTUALIZACION DE PEDIDOS");
                                                     for (var i = 0;
                                                         i <
                                                             pedidoSeleccionado
